@@ -1,0 +1,129 @@
+<!doctype html>
+<html lang="zh-CN" data-book-state="cover">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Life — ZOU MENG</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{width:100%;height:100%;overflow:hidden;background:#fff}
+body{font-family:Menlo,Monaco,"Courier New",monospace;color:#858585}
+:root{--page-w:420px;--page-h:594px;--snap:cubic-bezier(.28,.78,.2,1);--ui-side:calc(50% - var(--page-w)/2)}
+html[data-book-state="open"]{--ui-side:calc(50% - var(--page-w))}
+.loading{position:fixed;inset:0;z-index:99999;display:grid;place-items:center;background:#fff;font-size:10px;transition:opacity .2s}
+.loading.done{opacity:0;pointer-events:none}
+.scene{position:fixed;inset:0;overflow:hidden;background:#fff}
+.book{position:absolute;left:50%;top:50%;width:calc(var(--page-w)*2);height:var(--page-h);perspective:1800px;transform-style:preserve-3d;transition:transform .32s var(--snap)}
+.book.cover{transform:translate(calc(-50% - var(--page-w)/2),-50%)}
+.book.open{transform:translate(-50%,-50%)}
+.book.back{transform:translate(calc(-50% + var(--page-w)/2),-50%)}
+.page,.face{position:absolute;top:0;width:var(--page-w);height:var(--page-h);overflow:hidden;background:transparent}
+.page.left{left:0}.page.right{left:var(--page-w)}
+.page canvas,.face canvas{display:block;width:100%;height:100%;background:#fff}
+.page.hidden{visibility:hidden}
+.leaf{display:none;position:absolute;top:0;width:var(--page-w);height:var(--page-h);z-index:10;transform-style:preserve-3d;transition:transform .32s var(--snap)}
+.leaf.active{display:block}
+.leaf.next{left:var(--page-w);transform-origin:left center}.leaf.prev{left:0;transform-origin:right center}
+.leaf.next.go{transform:rotateY(-180deg)}.leaf.prev.go{transform:rotateY(180deg)}
+.face{inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.face.backface{transform:rotateY(180deg)}
+.leaf::after{content:"";position:absolute;inset:0;pointer-events:none;opacity:0;transition:opacity .16s;background:linear-gradient(90deg,rgba(0,0,0,.07),transparent 18%,transparent 82%,rgba(0,0,0,.035))}
+.leaf.go::after{opacity:.24}
+.hit{position:absolute;top:0;bottom:0;width:50%;z-index:30;border:0;background:transparent}
+.hit.prev{left:0;cursor:w-resize}.hit.next{right:0;cursor:e-resize}
+.reset,.counter,.hint{position:fixed;z-index:60000;font-family:Menlo,Monaco,"Courier New",monospace;font-size:9px;font-weight:400;line-height:1.2;letter-spacing:0;color:#858585}
+.reset{left:max(8px,calc(var(--ui-side) - 48px));top:max(12px,calc(50% - var(--page-h)/2 + 2px));border:0;background:none;color:inherit;cursor:pointer}
+.counter{left:max(12px,var(--ui-side));top:min(calc(100% - 22px),calc(50% + var(--page-h)/2 + 20px))}
+.hint{right:max(12px,var(--ui-side));top:min(calc(100% - 22px),calc(50% + var(--page-h)/2 + 20px));white-space:nowrap;pointer-events:none}
+.hint::before{content:"";display:inline-block;width:5px;height:5px;margin-right:7px;border-radius:50%;background:#ff5cd6;vertical-align:1px}
+.page::after,.face::after{content:"";position:absolute;inset:0;z-index:2;pointer-events:none}
+.page.left::after,.face.left::after{background:linear-gradient(to right,rgba(20,20,20,.02) 0%,rgba(20,20,20,.016) 18%,rgba(20,20,20,.012) 48%,rgba(20,20,20,.016) 70%,rgba(20,20,20,.029) 88%,rgba(20,20,20,.046) 100%)}
+.page.right::after,.face.right::after{background:linear-gradient(to right,rgba(20,20,20,.043) 0%,rgba(20,20,20,.03) 9%,rgba(20,20,20,.019) 20%,rgba(20,20,20,.012) 42%,rgba(20,20,20,.009) 72%,rgba(20,20,20,.011) 100%)}
+.book.cover .page.right::after{background:linear-gradient(to right,rgba(20,20,20,.028) 0%,rgba(20,20,20,.018) 12%,rgba(20,20,20,.012) 34%,rgba(20,20,20,.009) 72%,rgba(20,20,20,.011) 100%)}
+.page.left::before{content:"";position:absolute;z-index:3;left:0;top:0;bottom:0;width:var(--stack-width,1px);pointer-events:none;opacity:0;background:repeating-linear-gradient(to right,rgba(38,38,38,.21) 0 1px,rgba(255,255,255,.38) 1px 2px)}
+.book.open .page.left::before{opacity:.68}
+.page{z-index:2}
+.book::before{content:"";position:absolute;z-index:1;bottom:-5px;height:5px;pointer-events:none;background:rgba(0,0,0,.18);filter:blur(1.6px);border-radius:50%;transition:left .32s var(--snap),width .32s var(--snap),background .32s ease}
+.book.cover::before{left:calc(var(--page-w) + 4px);width:calc(var(--page-w) - 8px)}
+.book.open::before{left:1%;width:98%;background:rgba(0,0,0,.22)}
+.book.back::before{left:4px;width:calc(var(--page-w) - 8px)}
+</style>
+</head>
+<body>
+<div class="loading" id="loading">LOADING PDF…</div>
+<button class="reset" id="reset">RESET</button>
+<div class="counter" id="counter">—</div>
+<div class="hint">CLICK!</div>
+<div class="scene">
+  <div class="book cover" id="book">
+    <div class="page left" id="leftPage"><canvas></canvas></div>
+    <div class="page right" id="rightPage"><canvas></canvas></div>
+    <div class="leaf" id="leaf">
+      <div class="face" id="frontFace"><canvas></canvas></div>
+      <div class="face backface" id="backFace"><canvas></canvas></div>
+    </div>
+    <button class="hit prev" id="prev" aria-label="上一页"></button>
+    <button class="hit next" id="next" aria-label="下一页"></button>
+  </div>
+</div>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<script>
+const PDF_URL="assets/document-0001.pdf";
+const SNAP_TIME=320;
+const book=document.getElementById('book'),loading=document.getElementById('loading'),counter=document.getElementById('counter');
+const leftPage=document.getElementById('leftPage'),rightPage=document.getElementById('rightPage'),leaf=document.getElementById('leaf');
+const frontFace=document.getElementById('frontFace'),backFace=document.getElementById('backFace');
+let pageWidth=420,pageHeight=594,pages=[],position=0,busy=false;
+pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+function canvasOf(el){return el.querySelector('canvas')}
+function paint(el,index){
+  const target=canvasOf(el);if(index<0||index>=pages.length){target.width=1;target.height=1;el.classList.add('hidden');return}
+  el.classList.remove('hidden');const source=pages[index];target.width=source.width;target.height=source.height;
+  const c=target.getContext('2d',{alpha:false});c.fillStyle='#fff';c.fillRect(0,0,target.width,target.height);c.drawImage(source,0,0)
+}
+function shape(el,side){el.classList.remove('left','right');el.classList.add(side)}
+function label(){counter.textContent=String(position+1)+' / '+String(pages.length)}
+function show(){
+  book.style.setProperty('--stack-width',Math.min(7,Math.max(1,Math.floor(position/2)+1))+'px');leaf.className='leaf';
+  if(position===0){document.documentElement.dataset.bookState='cover';book.className='book cover';paint(leftPage,-1);shape(rightPage,'right');paint(rightPage,0)}
+  else if(position===pages.length-1){document.documentElement.dataset.bookState='back';book.className='book back';shape(leftPage,'left');paint(leftPage,position);paint(rightPage,-1)}
+  else{document.documentElement.dataset.bookState='open';book.className='book open';shape(leftPage,'left');shape(rightPage,'right');paint(leftPage,position);paint(rightPage,position+1)}
+  label()
+}
+function decodeDataUrl(url){const raw=atob(url.slice(url.indexOf(',')+1)),data=new Uint8Array(raw.length);for(let i=0;i<raw.length;i++)data[i]=raw.charCodeAt(i);return data}
+async function renderPage(pdf,index,scale){
+  const pdfPage=await pdf.getPage(index),viewport=pdfPage.getViewport({scale}),canvas=document.createElement('canvas');
+  canvas.width=Math.round(viewport.width);canvas.height=Math.round(viewport.height);const context=canvas.getContext('2d',{alpha:false});
+  context.fillStyle='#fff';context.fillRect(0,0,canvas.width,canvas.height);context.imageSmoothingEnabled=true;context.imageSmoothingQuality='high';
+  await pdfPage.render({canvasContext:context,viewport}).promise;pdfPage.cleanup();return canvas
+}
+function flip(dir){
+  if(busy)return;if(dir>0&&position>=pages.length-1)return;if(dir<0&&position<=0)return;busy=true;const from=position;
+  document.documentElement.dataset.bookState='open';
+  if(dir>0){
+    const front=from===0?0:from+1,back=from===0?1:from+2,next=from===0?1:from+2;
+    book.className='book open';shape(leftPage,'left');shape(rightPage,'right');paint(leftPage,from===0?-1:from);paint(rightPage,next+1);
+    leaf.className='leaf next active';shape(frontFace,'right');shape(backFace,'left');paint(frontFace,front);paint(backFace,back)
+  }else{
+    const front=from,back=from-1,previous=from-2;
+    book.className='book open';shape(leftPage,'left');shape(rightPage,'right');paint(leftPage,previous);paint(rightPage,from===pages.length-1?-1:from+1);
+    leaf.className='leaf prev active';shape(frontFace,'left');shape(backFace,'right');paint(frontFace,front);paint(backFace,back)
+  }
+  requestAnimationFrame(()=>requestAnimationFrame(()=>leaf.classList.add('go')));
+  setTimeout(()=>{position=dir>0?(from===0?1:Math.min(from+2,pages.length-1)):(from===pages.length-1?pages.length-3:Math.max(from-2,0));show();busy=false},SNAP_TIME+25)
+}
+document.getElementById('next').onclick=()=>flip(1);document.getElementById('prev').onclick=()=>flip(-1);
+document.getElementById('reset').onclick=()=>{if(!busy){position=0;show()}};
+addEventListener('keydown',event=>{if(event.key==='ArrowRight'||event.key===' ')flip(1);if(event.key==='ArrowLeft')flip(-1)});
+(async()=>{try{
+  const pdf=await pdfjsLib.getDocument({url:PDF_URL}).promise,first=await pdf.getPage(1),natural=first.getViewport({scale:1});
+  const ratio=natural.width/natural.height;pageHeight=Math.round(Math.min(innerHeight*.72,(innerWidth*.84/2)/ratio));pageWidth=Math.round(pageHeight*ratio);
+  if(pageWidth%2)pageWidth++;if(pageHeight%2)pageHeight++;
+  document.documentElement.style.setProperty('--page-w',pageWidth+'px');document.documentElement.style.setProperty('--page-h',pageHeight+'px');
+  const quality=Math.min(2.2,Math.max(1.55,devicePixelRatio*1.15)),scale=(pageHeight/natural.height)*quality;
+  for(let i=1;i<=pdf.numPages;i++){loading.textContent=`RENDERING ${i} / ${pdf.numPages}`;pages.push(await renderPage(pdf,i,scale))}
+  show();loading.classList.add('done')
+}catch(error){console.error(error);loading.textContent='BOOK LOAD ERROR'}})();
+</script>
+</body>
+</html>

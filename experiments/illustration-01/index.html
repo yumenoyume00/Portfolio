@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Illustration 01 — STACK / SCATTER / GRID</title>
+  <style>
+    * { box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; margin: 0; overflow: hidden; background: #fff; }
+    body { font-family: Arial, Helvetica, sans-serif; }
+
+    .stage {
+      position: relative;
+      width: 100vw;
+      height: 100svh;
+      overflow: hidden;
+      cursor: default;
+      background: #fff;
+    }
+
+    .art {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: var(--card-width, 82px);
+      margin: 0;
+      padding: 0;
+      line-height: 0;
+      transform: translate3d(var(--x, 0px), var(--y, 0px), 0);
+      transition: transform 720ms cubic-bezier(.22, .61, .36, 1);
+      will-change: transform;
+    }
+
+    .art img {
+      display: block;
+      width: 100%;
+      height: auto;
+      margin: 0;
+      object-fit: contain;
+    }
+
+    .stage.is-resizing .art { transition: none; }
+
+    @media (prefers-reduced-motion: reduce) {
+      .art { transition-duration: 1ms; }
+    }
+  </style>
+</head>
+<body>
+  <main class="stage" data-state="stack" aria-label="Illustration 01 motion study">
+    <figure class="art"><img src="../../assets/images/illustration/flower-forms/flower-01.png" alt="Illustration 01 artwork 1"></figure>
+    <figure class="art"><img src="../../assets/images/illustration/flower-forms/flower-02.png" alt="Illustration 01 artwork 2"></figure>
+    <figure class="art"><img src="../../assets/images/illustration/flower-forms/flower-03.png" alt="Illustration 01 artwork 3"></figure>
+    <figure class="art"><img src="../../assets/images/illustration/flower-forms/flower-04.png" alt="Illustration 01 artwork 4"></figure>
+    <figure class="art"><img src="../../assets/images/illustration/flower-forms/flower-05.png" alt="Illustration 01 artwork 5"></figure>
+    <figure class="art"><img src="../../assets/images/illustration/flower-forms/flower-06.png" alt="Illustration 01 artwork 6"></figure>
+    <figure class="art"><img src="../../assets/images/illustration/flower-forms/flower-07.png" alt="Illustration 01 artwork 7"></figure>
+    <figure class="art"><img src="../../assets/images/illustration/flower-forms/flower-08.png" alt="Illustration 01 artwork 8"></figure>
+    <figure class="art"><img src="../../assets/images/illustration/flower-forms/flower-09.png" alt="Illustration 01 artwork 9"></figure>
+    <figure class="art"><img src="../../assets/images/illustration/flower-forms/flower-10.png" alt="Illustration 01 artwork 10"></figure>
+    <figure class="art"><img src="../../assets/images/illustration/flower-forms/flower-11.png" alt="Illustration 01 artwork 11"></figure>
+    <figure class="art"><img src="../../assets/images/illustration/flower-forms/flower-12.png" alt="Illustration 01 artwork 12"></figure>
+    <figure class="art"><img src="../../assets/images/illustration/flower-forms/flower-13.png" alt="Illustration 01 artwork 13"></figure>
+    <figure class="art"><img src="../../assets/images/illustration/flower-forms/flower-14.png" alt="Illustration 01 artwork 14"></figure>
+    <figure class="art"><img src="../../assets/images/illustration/flower-forms/flower-15.png" alt="Illustration 01 artwork 15"></figure>
+    <figure class="art"><img src="../../assets/images/illustration/flower-forms/flower-16.png" alt="Illustration 01 artwork 16"></figure>
+    <figure class="art"><img src="../../assets/images/illustration/flower-forms/flower-17.png" alt="Illustration 01 artwork 17"></figure>
+    <figure class="art"><img src="../../assets/images/illustration/flower-forms/flower-18.png" alt="Illustration 01 artwork 18"></figure>
+    <figure class="art"><img src="../../assets/images/illustration/flower-forms/flower-19.png" alt="Illustration 01 artwork 19"></figure>
+    <figure class="art"><img src="../../assets/images/illustration/flower-forms/flower-20.png" alt="Illustration 01 artwork 20"></figure>
+    <figure class="art"><img src="../../assets/images/illustration/flower-expansion-2/flower-01.png" alt="Illustration 01 test artwork 21"></figure>
+    <figure class="art"><img src="../../assets/images/illustration/flower-expansion-2/flower-02.png" alt="Illustration 01 test artwork 22"></figure>
+    <figure class="art"><img src="../../assets/images/illustration/flower-expansion-2/flower-03.png" alt="Illustration 01 test artwork 23"></figure>
+    <figure class="art"><img src="../../assets/images/illustration/flower-expansion-2/flower-04.png" alt="Illustration 01 test artwork 24"></figure>
+  </main>
+
+  <script>
+    (() => {
+      const stage = document.querySelector('.stage');
+      const cards = [...document.querySelectorAll('.art')];
+      const states = ['stack', 'scatter', 'grid'];
+      const duration = 720;
+      const movementThreshold = 80;
+      let stateIndex = 0;
+      let locked = false;
+      let lastPoint = null;
+      let movement = 0;
+      let resizeTimer = 0;
+
+      const stackOffsets = [
+        [-20,-12],[-12,-17],[-5,-14],[4,-18],[13,-13],[20,-7],
+        [-18,-3],[-10,-7],[-2,-5],[7,-8],[16,-2],[22,4],
+        [-21,7],[-13,3],[-5,6],[4,2],[13,8],[20,12],
+        [-15,15],[-7,12],[2,16],[10,13],[17,18],[24,15]
+      ];
+
+      const scatterPoints = [
+        [9,15],[23,11],[39,18],[58,12],[75,17],[89,13],
+        [15,34],[31,29],[49,35],[68,30],[84,38],
+        [8,55],[25,51],[42,60],[61,52],[78,59],[91,54],
+        [14,78],[30,72],[47,81],[64,73],[82,79],[92,70],[55,87]
+      ];
+
+      function metrics() {
+        const w = stage.clientWidth;
+        const h = stage.clientHeight;
+        const desktopCard = Math.min(92, Math.max(70, w * 0.062));
+        const cardWidth = w < 700 ? Math.max(32, Math.min(58, (w - 42) / 12)) : desktopCard;
+        const cardHeight = cardWidth * (3508 / 2481);
+        return { w, h, cardWidth, cardHeight };
+      }
+
+      function positionFor(state, index, m) {
+        if (state === 'stack') {
+          const [ox, oy] = stackOffsets[index];
+          return {
+            x: (m.w - m.cardWidth) / 2 + ox * (m.cardWidth / 82) * 1.25,
+            y: (m.h - m.cardHeight) / 2 + oy * (m.cardWidth / 82)
+          };
+        }
+
+        if (state === 'scatter') {
+          const [px, py] = scatterPoints[index];
+          const safeX = Math.max(28, m.w * .07);
+          const safeY = Math.max(34, m.h * .11);
+          const usableW = m.w - safeX * 2 - m.cardWidth;
+          const usableH = m.h - safeY * 2 - m.cardHeight;
+          const normalizedX = (px - 8) / 84;
+          const normalizedY = (py - 11) / 76;
+          return {
+            x: safeX + usableW * normalizedX,
+            y: safeY + usableH * normalizedY
+          };
+        }
+
+        const columns = 8;
+        const rows = 3;
+        const maxGapX = m.w < 700 ? 16 : 50;
+        const maxGapY = m.h < 650 ? 28 : 64;
+        const gapX = Math.max(m.w < 700 ? 8 : 35, Math.min(maxGapX, (m.w * .84 - columns * m.cardWidth) / (columns - 1)));
+        const gapY = Math.max(m.h < 650 ? 20 : 45, Math.min(maxGapY, (m.h * .72 - rows * m.cardHeight) / (rows - 1)));
+        const gridW = columns * m.cardWidth + (columns - 1) * gapX;
+        const gridH = rows * m.cardHeight + (rows - 1) * gapY;
+        const col = index % columns;
+        const row = Math.floor(index / columns);
+        return {
+          x: (m.w - gridW) / 2 + col * (m.cardWidth + gapX),
+          y: (m.h - gridH) / 2 + row * (m.cardHeight + gapY)
+        };
+      }
+
+      function render(state) {
+        const m = metrics();
+        stage.dataset.state = state;
+        stage.style.setProperty('--card-width', `${m.cardWidth}px`);
+        cards.forEach((card, index) => {
+          const p = positionFor(state, index, m);
+          card.style.setProperty('--x', `${p.x}px`);
+          card.style.setProperty('--y', `${p.y}px`);
+          card.style.zIndex = String(index + 1);
+        });
+      }
+
+      function advance() {
+        if (locked || stateIndex >= states.length - 1) return;
+        locked = true;
+        stateIndex += 1;
+        render(states[stateIndex]);
+        movement = 0;
+        lastPoint = null;
+        window.setTimeout(() => { locked = false; }, duration + 80);
+      }
+
+      window.addEventListener('mousemove', event => {
+        if (locked || stateIndex >= states.length - 1) return;
+        const point = { x: event.clientX, y: event.clientY };
+        if (lastPoint) movement += Math.hypot(point.x - lastPoint.x, point.y - lastPoint.y);
+        lastPoint = point;
+        if (movement >= movementThreshold) advance();
+      }, { passive: true });
+
+      window.addEventListener('resize', () => {
+        stage.classList.add('is-resizing');
+        window.clearTimeout(resizeTimer);
+        render(states[stateIndex]);
+        resizeTimer = window.setTimeout(() => stage.classList.remove('is-resizing'), 120);
+      });
+
+      render(states[0]);
+    })();
+  </script>
+</body>
+</html>
