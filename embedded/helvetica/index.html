@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Life — ZOU MENG</title>
+<title>Helvetica — ZOU MENG</title>
 <style>
 *{box-sizing:border-box;margin:0;padding:0}
 html,body{width:100%;height:100%;overflow:hidden;background:#fff}
@@ -126,7 +126,8 @@ document.addEventListener('pointerleave',()=>{
 });
 addEventListener('keydown',event=>{if(event.key==='ArrowRight'||event.key===' ')flip(1);if(event.key==='ArrowLeft')flip(-1)});
 (async()=>{try{
-  const pdf=await pdfjsLib.getDocument({url:PDF_URL}).promise,first=await pdf.getPage(1),natural=first.getViewport({scale:1});
+  const response=await fetch(PDF_URL);if(!response.ok)throw new Error(`PDF ${response.status}`);const pdfData=new Uint8Array(await response.arrayBuffer());
+  const pdf=await pdfjsLib.getDocument({data:pdfData}).promise,first=await pdf.getPage(1),natural=first.getViewport({scale:1});
   const ratio=natural.width/natural.height;pageHeight=Math.round(Math.min(innerHeight*.72,(innerWidth*.84/2)/ratio));pageWidth=Math.round(pageHeight*ratio);
   if(pageWidth%2)pageWidth++;if(pageHeight%2)pageHeight++;
   document.documentElement.style.setProperty('--page-w',pageWidth+'px');document.documentElement.style.setProperty('--page-h',pageHeight+'px');
