@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Kuwasawa Final v79 - Final S Title Center Alignment</title>
+<style>
+  /* --- 0. 全局设置 (修复滚动和布局) --- */
+  body, html {
+    margin: 0; 
+    padding: 0; 
+    height: auto; 
+    min-height: 100vh;
+    overflow-y: auto; /* 允许垂直滚动 */
+    overflow-x: hidden; /* 防止横向滚动条 */
+    
+    display: flex; 
+    justify-content: center; 
+    align-items: flex-start; /* 内容从顶部开始排列 */
+    background-color: #E0E0E0; 
+    font-family: "Hiragino Mincho ProN", "Yu Mincho", "Times New Roman", serif; 
+  }
+
+  /* ★ 新增：整体缩放包装层 (方便录制) */
+  #screen-wrapper {
+    transform: scale(0.65); /* 默认缩放比例，请根据您的屏幕手动调整 */
+    transform-origin: top center; 
+    
+    display: block; /* 关键：确保缩放效果能正常显示，允许其外部滚动 */
+    width: auto;
+    height: auto;
+  }
+
+  /* --- 1. 手机框架 (增加留白) --- */
+  .phone-frame {
+    width: 375px; 
+    height: 812px; 
+    /* 增加垂直和水平留白 */
+    margin: 120px 150px; 
+    background-color: #FFFFFF; 
+    border: 12px solid #1a1a1a;
+    border-radius: 40px; 
+    position: relative;
+    box-shadow: 0 30px 70px rgba(0,0,0,0.3);
+    overflow: hidden; 
+    flex-shrink: 0;
+  }
+
+  /* --- 2. Splash --- */
+  .splash-screen {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background-color: #FFFFFF; z-index: 500;
+    transition: opacity 0.8s ease-out;
+    display: flex; justify-content: center; align-items: center;
+  }
+  .logo-img { width: 280px; height: auto; object-fit: contain; }
+
+  /* --- 3. Home / Standby --- */
+  .main-bg-layer {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    background-color: #F5F5F5; z-index: 1;
+    transition: opacity 0.5s ease-in-out; opacity: 1;
+  }
+  .color-block {
+    position: absolute; left: 103px; top: 0; width: 231px; height: 100%;
+    background-color: #CB0000;
+    animation: bgFade 3s ease-in-out forwards paused;
+    transition: all 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+    z-index: 10; cursor: pointer; opacity: 1;
+  }
+  .color-block.expand {
+    left: 0 !important; width: 375px !important; height: 632px !important; top: 94px !important; 
+    background-color: #7B7B7B !important; 
+  }
+  .color-block.fade-out-white { opacity: 0; transition: opacity 0.8s ease-in-out; pointer-events: none; }
+  @keyframes bgFade { 0% { background-color: #CB0000; } 100% { background-color: #7B7B7B; } }
+
+  .text-layer {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    z-index: 200; pointer-events: none;
+    transition: opacity 0.5s ease-in-out; opacity: 1;
+  }
+  .float-text {
+    pointer-events: auto; position: absolute;
+    color: #000000; font-size: 20px; font-weight: 600; line-height: 32px;
+    opacity: 0; transform: translateY(60px); 
+    animation: floatUp 8s linear infinite paused;
+    cursor: pointer; transition: color 0.5s, opacity 0.5s;
+  }
+  .float-text.selected {
+    color: #FFFFFF !important; text-decoration: line-through;
+    text-decoration-thickness: 2px; text-decoration-color: #FFFFFF; z-index: 300; 
+  }
+  .float-text.hidden { opacity: 0 !important; pointer-events: none; }
+  .horizontal { writing-mode: horizontal-tb; }
+  .vertical { writing-mode: vertical-rl; text-orientation: mixed; }
+  @keyframes floatUp {
+    0% { transform: translateY(60px); opacity: 0; } 15% { opacity: 1; }
+    70% { opacity: 1; } 90% { opacity: 0; transform: translateY(-80px); }
+    100% { transform: translateY(-80px); opacity: 0; }
+  }
+  .t1 { left: 26px;  top: 130px; animation-delay: 0s; }
+  .t2 { left: 240px; top: 180px; animation-delay: 1s; }
+  .t3 { left: 52px;  top: 391px; animation-delay: 2.5s; }
+  .t4 { left: 289px; top: 461px; animation-delay: 3.5s; }
+  .t5 { left: 59px;  top: 604px; animation-delay: 5s; }
+  .t6 { left: 289px; top: 636px; animation-delay: 6s; }
+
+  /* --- 4. Navigation --- */
+  .bottom-nav-hitbox { 
+    position: absolute; bottom: 0; left: 0; width: 100%; height: 86px; 
+    z-index: 5000; display: none; 
+  }
+  .nav-zone { flex: 1; background: rgba(0, 0, 0, 0); cursor: pointer; }
+  .back-btn-hitbox { position: absolute; top: 50px; right: 10px; width: 60px; height: 50px; z-index: 1001; cursor: pointer; display: none; }
+  .full-screen-bg { position: absolute; top: 0; left: 0; width: 100%; height: 100%; object-fit: cover; opacity: 0; pointer-events: none; transition: opacity 0.6s ease-in-out; }
+  
+  #detailBg1, #detailBg2 { z-index: 50; } 
+  #menuBg { z-index: 55; }
+  #page3Bg, #nextPageBg { z-index: 90; }
+
+  .scroll-window { position: absolute; top: 94px; bottom: 90px; left: 0; width: 100%; overflow-y: auto; scroll-behavior: smooth; z-index: 60; opacity: 0; pointer-events: none; transition: opacity 0.8s ease-in-out; scrollbar-width: none; -ms-overflow-style: none; }
+  .scroll-window::-webkit-scrollbar { display: none; }
+  .long-image { width: 100%; display: block; cursor: pointer; }
+
+  /* --- 5. Section D (Canvas) --- */
+  #sectionDGroup { position: absolute; top: 0; left: 0; width: 100%; height: 100%; opacity: 0; pointer-events: none; z-index: 200; transition: opacity 0.6s ease-in-out; }
+  #sectionDBg { z-index: 201; opacity: 1; }
+  
+  .geo-canvas {
+    position: absolute; z-index: 202;
+    cursor: pointer;
+    overflow: hidden; 
+  }
+  
+  /* D-CSS: 布局调整，增大蓝/黄容器尺寸以容纳更长的椭圆主轴 */
+  .pos-red    { top: 50px; left: 30px; width: 340px; height: 260px; } 
+  .pos-green  { top: 200px; left: 20px; width: 340px; height: 280px; } 
+  .pos-blue   { top: 280px; left: 20px; width: 340px; height: 460px; } 
+  .pos-yellow { bottom: 50px; left: 20px; width: 340px; height: 380px; } 
+
+  .d-label { position: absolute; z-index: 205; font-size: 15px; font-weight: 600; color: #1a1a1a; cursor: pointer; pointer-events: auto; letter-spacing: 0.5px; }
+  .d-label::after { content: ''; display: block; position: absolute; left: 0; top: 50%; width: 0; height: 2px; background: #000; transition: width 0.3s; transform: translateY(-50%); }
+  .d-label:hover::after { width: 100%; }
+  .lbl-red { top: 180px; right: 40px; text-align: right; } 
+  .lbl-green { top: 350px; left: 60px; } 
+  .lbl-blue { top: 520px; right: 40px; writing-mode: vertical-rl; } 
+  .lbl-yellow { bottom: 180px; left: 80px; }
+  #sectionDDetailText, #sectionDDetailShape { z-index: 300; background-color: #fff; }
+
+  /* --- 6. SECTION S --- */
+  #sectionSGroup {
+    position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+    opacity: 0; pointer-events: none; z-index: 200;
+    transition: opacity 0.5s ease-in-out;
+    background-color: transparent;
+  }
+  #sectionSFrame { z-index: 204; pointer-events: none; }
+  
+  /* S Fix: S Dark Background (Fixed Content Height) */
+  #sDarkBg { 
+    position: absolute; top: 94px; left: 0; width: 100%; 
+    height: 632px; /* 812 - 94 - 86 = 632px */
+    background-color: #7B7B7B; z-index: 205; 
+  }
+
+  /* S Fix: S Light Panel (Fixed Top Position for boundary) */
+  #sLightPanel {
+    position: absolute; left: 0; top: 468px; /* Boundary Line 468px */
+    width: 100%; height: 258px;
+    background-color: #C2C2C2; z-index: 206;
+    transform: translateY(258px); /* Initial state: hidden below boundary */
+    transition: transform 0.8s cubic-bezier(0.25, 1, 0.5, 1); 
+  }
+  #sLightPanel.slide-up { transform: translateY(0); } /* Final state */
+
+  .s-text-group { position: absolute; top: 0; left: 0; width: 100%; height: 100%; z-index: 225; pointer-events: none; }
+  
+  .s-link { 
+    position: relative; cursor: pointer; transition: opacity 0.5s; 
+    pointer-events: none; 
+    opacity: 0; 
+  }
+  .s-link:hover { 
+    opacity: 0.8; 
+    text-decoration: line-through; 
+    text-decoration-thickness: 1.5px;
+    text-decoration-color: currentColor; 
+  }
+
+  .t-list-right { position: absolute; top: 312px; right: 20px; display: flex; flex-direction: column; align-items: flex-end; font-size: 15px; line-height: 1.7; font-weight: 600; }
+  .t-list-left { position: absolute; bottom: 120px; left: 24px; display: flex; flex-direction: row; gap: 4px; }
+  .v-item { writing-mode: vertical-rl; font-size: 14px; letter-spacing: 2px; font-weight: 600; }
+
+  /* ★ Final S Title Fix: Top 440px (Visual Center Y=460) */
+  .t-portal { 
+    position: absolute; 
+    top: 420px; /* Final visual correction */
+    width: 100%; text-align: center; 
+    font-size: 36px; font-weight: 600; letter-spacing: 1px; 
+    transform: translate(0, 20px); /* Initial position offset */
+  }
+  .t-portal.fade-in { transform: translate(0, 0); } /* Final position */
+
+  .purple-txt { color: #AFA4FF; } .green-txt { color: #57EEB3; } .black-txt { color: #000000; }
+  .t-entrance { position: absolute; top: 114px; left: 20px; font-size: 36px; writing-mode: vertical-rl; letter-spacing: 4px; font-weight: 600; }
+  .t-exam { position: absolute; bottom: 115px; right: 20px; font-size: 24px; font-weight: 600; }
+  
+  #sDetailPage { z-index: 300; background-color: #fff; }
+  .s-btn-hotspot { position: absolute; bottom: 110px; height: 60px; z-index: 310; cursor: pointer; display: none; }
+  #sBtnLeft { left: 20px; width: 160px; }
+  #sBtnRight { right: 20px; width: 160px; }
+
+html,body,body *{cursor:default!important}
+</style>
+
+<style>
+html,body{
+  width:375px !important;
+  height:812px !important;
+  min-height:812px !important;
+  margin:0 !important;
+  padding:0 !important;
+  overflow:hidden !important;
+  background:#fff !important;
+  display:block !important;
+}
+#screen-wrapper{
+  transform:none !important;
+  transform-origin:top left !important;
+  width:375px !important;
+  height:812px !important;
+  display:block !important;
+}
+.phone-frame{
+  width:375px !important;
+  height:812px !important;
+  margin:0 !important;
+  border:0 !important;
+  border-radius:0 !important;
+  box-shadow:none !important;
+}
+html,body,body *{cursor:default!important}
+</style>
+
+<style>html,body,.phone-frame{overflow:clip!important;}html,body,body *{cursor:default!important}
+</style>
+</head>
+<body>
+
+<div id="screen-wrapper"> 
+<div class="phone-frame">
+  <div class="splash-screen" id="splashScreen">
+    <img src="assets/image-0001.png" alt="Logo" class="logo-img">
+  </div>
+
+  <div class="main-bg-layer" id="mainBgLayer"></div>
+  <div class="color-block" id="colorBlock"></div>
+  <div class="text-layer" id="textLayer">
+    <div class="float-text horizontal t1">デザインを活かし、<br>社会連携に取り組む</div>
+    <div class="float-text vertical t2">日本で<br>最初の<br>『デザイン』<br>学校</div>
+    <div class="float-text horizontal t3">バウハウス精神を見出した</div>
+    <div class="float-text vertical t4">研究活動</div>
+    <div class="float-text vertical t5">校舎設備<br>キャンパスライフ</div>
+    <div class="float-text vertical t6">教育職員紹介</div>
+  </div>
+
+  <div class="bottom-nav-hitbox" id="bottomNav">
+    <div class="nav-zone" id="navK" title="Home"></div>
+    <div class="nav-zone" id="navD" title="Section D"></div>
+    <div class="nav-zone" id="navS" title="Section S"></div>
+  </div>
+  
+  <div id="backBtnAreaA" class="back-btn-hitbox"></div>
+  <div id="backBtnAreaB" class="back-btn-hitbox"></div>
+  <div id="backBtnAreaD" class="back-btn-hitbox"></div>
+  <div id="backBtnAreaS" class="back-btn-hitbox"></div>
+
+  <img src="assets/image-0002.png" class="full-screen-bg" id="detailBg1">
+  <img src="assets/image-0003.png"            class="full-screen-bg" id="detailBg2">
+  
+  <img src="assets/image-0004.png" class="full-screen-bg" id="menuBg">
+  <div class="scroll-window" id="scrollWindow">
+    <img src="assets/image-0005.png" class="long-image" id="longImage">
+  </div>
+  <img src="assets/image-0006.png" class="full-screen-bg" id="page3Bg">
+  <img src="assets/image-0006.png" class="full-screen-bg" id="nextPageBg">
+
+  <div id="sectionDGroup">
+    <img src="assets/image-0007.png" class="full-screen-bg" id="sectionDBg" alt="D Bg">
+    <canvas id="cRed"    class="geo-canvas pos-red"></canvas>
+    <canvas id="cGreen"  class="geo-canvas pos-green"></canvas>
+    <canvas id="cBlue"   class="geo-canvas pos-blue"></canvas>
+    <canvas id="cYellow" class="geo-canvas pos-yellow"></canvas>
+    
+    <div class="d-label lbl-red"    id="lblRed">夜間部 / 2年制専攻デザイン科</div>
+    <div class="d-label lbl-green"  id="lblGreen">メディア創造コース</div>
+    <div class="d-label lbl-blue"   id="lblBlue">夜間附帯教育</div>
+    <div class="d-label lbl-yellow" id="lblYellow">昼間部 / 3年制総合デザイン科</div>
+  </div>
+  <img src="assets/image-0008.png"  class="full-screen-bg" id="sectionDDetailText">
+  <img src="assets/image-0009.png" class="full-screen-bg" id="sectionDDetailShape">
+
+  <div id="sectionSGroup">
+    <img src="assets/image-0010.png" class="full-screen-bg" id="sectionSFrame" alt="S Frame">
+    <div id="sDarkBg"></div>
+    <div id="sLightPanel"></div>
+    <div class="s-text-group">
+      <div class="s-link purple-txt t-entrance">入学案内</div>
+      
+      <div class="t-list-right">
+        <div class="s-link purple-txt">LINEから入试</div>
+        <div class="s-link purple-txt">学校見学・個別相談会</div>
+        <div class="s-link purple-txt">资料请求</div>
+        <div class="s-link purple-txt">学校说明会</div>
+      </div>
+      
+      <div class="s-link black-txt t-portal">受験生ポータル</div>
+      
+      <div class="t-list-left">
+        <div class="s-link green-txt v-item">募集要項</div>
+        <div class="s-link green-txt v-item">Web出愿</div>
+        <div class="s-link green-txt v-item">过去の入试结果</div>
+        <div class="s-link green-txt v-item">授業料</div>
+        <div class="s-link green-txt v-item">过去问题集</div>
+        <div class="s-link green-txt v-item">就学案内</div>
+      </div>
+      
+      <div class="s-link green-txt t-exam">入学試験</div>
+    </div>
+  </div>
+  <img src="assets/image-0011.png" class="full-screen-bg" id="sDetailPage" alt="S Detail">
+  <div id="sBtnLeft" class="s-btn-hotspot"></div>
+  <div id="sBtnRight" class="s-btn-hotspot"></div>
+
+</div>
+</div> 
+
+<script>
+  /* ================= 3D Canvas Animation Logic ================= */
+  const MAT = {
+    identity: () => [1,0,0,0, 0,1,0,0, 0,0,1,0, 0,0,0,1],
+    mul: (a, b) => {
+      const o = new Array(16);
+      for (let r=0; r<4; r++) {
+        for (let c=0; c<4; c++) {
+          o[r*4+c] = a[r*4]*b[c] + a[r*4+1]*b[c+4] + a[r*4+2]*b[c+8] + a[r*4+3]*b[c+12];
+        }
+      }
+      return o;
+    },
+    mulVec4: (m, v) => [
+      m[0]*v[0]+m[1]*v[1]+m[2]*v[2]+m[3]*v[3],
+      m[4]*v[0]+m[5]*v[1]+m[6]*v[2]+m[7]*v[3],
+      m[8]*v[0]+m[9]*v[1]+m[10]*v[2]+m[11]*v[3],
+      m[12]*v[0]+m[13]*v[1]+m[14]*v[2]+m[15]*v[3]
+    ],
+    rotX: (a) => { const c=Math.cos(a), s=Math.sin(a); return [1,0,0,0, 0,c,-s,0, 0,s,c,0, 0,0,0,1]; },
+    rotY: (a) => { const c=Math.cos(a), s=Math.sin(a); return [c,0,s,0, 0,1,0,0, -s,0,c,0, 0,0,0,1]; }
+  };
+
+  class DiscAnimation {
+    // 构造函数接收 rx, ry 为期望的像素值
+    constructor(canvasId, color, rx, ry, initialVelX, initialVelY, maxTilt) {
+      this.canvas = document.getElementById(canvasId);
+      this.ctx    = this.canvas.getContext('2d');
+      
+      // 1. 用真实显示尺寸作为内部尺寸
+      const rect = this.canvas.getBoundingClientRect();
+      this.canvas.width  = rect.width || parseFloat(getComputedStyle(this.canvas).width);
+      this.canvas.height = rect.height || parseFloat(getComputedStyle(this.canvas).height);
+
+      this.W = this.canvas.width;
+      this.H = this.canvas.height;
+      this.cx = this.W / 2;
+      this.cy = this.H / 2;
+      
+      // 2. 对 rx / ry 加上 [min, max] 限制 (解决裁剪和最小尺寸问题)
+      this.rx = rx;
+      this.ry = ry;
+
+      // ★ 关键修改 1：恢复安全上限 (0.46)，防止任何角度的裁剪 (解决问题 1)
+      const maxRx = this.W * 0.46; 
+      const maxRy = this.H * 0.46; 
+
+      // ★ 关键修改 2：提高长轴的最小要求，确保横长足够 (解决问题 2)
+      const halfScreen   = 375 * 0.5;         
+      const minVisualRx  = halfScreen * 0.48; // 对应的半径 ≈ 90px (宽度 180px)
+      
+      const minRxByCanvas = this.W * 0.38; // 提高 Canvas 自身最小比例限制
+      const minRx = Math.max(minVisualRx, minRxByCanvas);
+
+      const minRy = this.H * 0.18; 
+
+      // Clamp：夹在 [min, max] 之间
+      this.rx = Math.min(maxRx, Math.max(minRx, this.rx));
+      this.ry = Math.min(maxRy, Math.max(minRy, this.ry));
+
+      this.color = color;
+      this.angleX = (Math.random() - 0.5);
+      this.angleY = Math.random() * Math.PI * 2;
+      this.velX = initialVelX;
+      this.velY = initialVelY;
+      this.maxTiltX = maxTilt; 
+      this.maxTiltY = Math.PI * 2;
+      this.baseSpeed = 1.3;
+      this.lastTime = 0;
+    }
+    project(p3) {
+      const focalLength = 600;
+      const baseZ = 600;
+      const zCam = p3[2] + baseZ;
+      const s = focalLength / zCam;
+      return [p3[0] * s + this.cx, p3[1] * s + this.cy];
+    }
+    
+    // 3. 限制 X 轴倾斜范围 (保证最小厚度)
+    update(timeMs) {
+      if (!this.lastTime) this.lastTime = timeMs;
+      const dt = (timeMs - this.lastTime) / 1000;
+      this.lastTime = timeMs;
+
+      // 速度波动频率适中
+      const speedScale = 1.0 + 0.3 * Math.sin(timeMs / 1000 * 0.5); 
+      
+      let stepX = this.velX * this.baseSpeed * speedScale * dt;
+      let stepY = this.velY * this.baseSpeed * 0.7 * dt;
+
+      let newX = this.angleX + stepX;
+      let newY = this.angleY + stepY;
+
+      // 限制 X 轴倾斜范围
+      if (newX > this.maxTiltX) {
+        newX = this.maxTiltX - (newX - this.maxTiltX);
+        this.velX *= -1;
+      } else if (newX < -this.maxTiltX) {
+        newX = -this.maxTiltX - (newX + this.maxTiltX);
+        this.velX *= -1;
+      }
+
+      this.angleX = newX;
+      this.angleY = newY;
+    }
+    
+    draw() {
+      this.ctx.clearRect(0, 0, this.W, this.H);
+      let model = MAT.identity();
+      model = MAT.mul(model, MAT.rotY(this.angleY));
+      model = MAT.mul(model, MAT.rotX(this.angleX));
+      const segments = 80;
+      this.ctx.beginPath();
+      for (let i = 0; i <= segments; i++) {
+        const a = (i / segments) * Math.PI * 2;
+        const xLocal = this.rx * Math.cos(a);
+        const yLocal = this.ry * Math.sin(a);
+        const pLocal = [xLocal, yLocal, 0, 1];
+        const pWorld = MAT.mulVec4(model, pLocal);
+        const p2d = this.project(pWorld);
+        if (i === 0) this.ctx.moveTo(p2d[0], p2d[1]);
+        else this.ctx.lineTo(p2d[0], p2d[1]);
+      }
+      this.ctx.closePath();
+      this.ctx.fillStyle = this.color;
+      this.ctx.fill();
+    }
+  }
+
+  window.onload = function() {
+    // ★ 4. 实例化参数：已调整为【长轴最大化】和【差异化快慢节奏】
+    // 参数: canvasId, color, rx(像素期望值), ry(像素期望值), initialVelX, initialVelY, maxTilt
+    const discs = [
+      // 红：最快，主导节奏，掠过感 (rx 200)，更斜一点 (Math.PI/6)
+      new DiscAnimation('cRed',    '#DB515C', 200, 30,  1.8, 0.5, Math.PI/6), 
+      
+      // 绿：中速，斜向翻滚 (rx 180)，更斜一点 (Math.PI/4.5)
+      new DiscAnimation('cGreen',  '#438E5B', 180, 50,  0.8, 1.5, Math.PI/4.5), 
+      
+      // 蓝：慢速，立体感最强 (rx 200)
+      new DiscAnimation('cBlue',   '#4F8EC7', 200, 80,  0.6, 0.8, Math.PI/4), 
+      
+      // 黄：极慢，最稳定锚点 (rx 220, 最长，占据视觉底部)
+      new DiscAnimation('cYellow', '#F2C050', 220, 100, 0.3, 0.3, Math.PI/8) 
+    ];
+    
+    function loop(time) { 
+      discs.forEach(d => { 
+        d.update(time); 
+        d.draw(); 
+      }); 
+      requestAnimationFrame(loop); 
+    }
+    requestAnimationFrame(loop);
+
+    // --- App Logic --- (保持不变)
+    const splash      = document.getElementById('splashScreen');
+    const colorBg     = document.getElementById('colorBlock');
+    const texts       = document.querySelectorAll('.float-text');
+    const textLayer   = document.getElementById('textLayer');
+    const mainBgLayer = document.getElementById('mainBgLayer');
+    const bottomNav   = document.getElementById('bottomNav');
+    const navK = document.getElementById('navK');
+    const navD = document.getElementById('navD');
+    const navS = document.getElementById('navS');
+
+    const detailBg1 = document.getElementById('detailBg1');
+    const detailBg2 = document.getElementById('detailBg2');
+    const backBtnA  = document.getElementById('backBtnAreaA');
+    const menuBg       = document.getElementById('menuBg');
+    const scrollWindow = document.getElementById('scrollWindow');
+    const longImage    = document.getElementById('longImage');
+    const page3Bg      = document.getElementById('page3Bg');
+    const nextPageBg   = document.getElementById('nextPageBg');
+    const backBtnB     = document.getElementById('backBtnAreaB');
+    
+    const sectionDGroup = document.getElementById('sectionDGroup');
+    const backBtnD      = document.getElementById('backBtnAreaD');
+    const dDetailText   = document.getElementById('sectionDDetailText');
+    const dDetailShape  = document.getElementById('sectionDDetailShape');
+    const dCanvases     = document.querySelectorAll('.geo-canvas');
+    const dLabels       = document.querySelectorAll('.d-label');
+
+    const sectionSGroup = document.getElementById('sectionSGroup');
+    const sectionSFrame = document.getElementById('sectionSFrame');
+    const sLightPanel   = document.getElementById('sLightPanel');
+    const sTexts        = document.querySelectorAll('.s-link');
+    const sDetailPage   = document.getElementById('sDetailPage');
+    const backBtnS      = document.getElementById('backBtnAreaS');
+    const sBtnLeft      = document.querySelectorAll('.s-btn-hotspot')[0];
+    const sBtnRight     = document.querySelectorAll('.s-btn-hotspot')[1];
+
+    let isInteracting = false; 
+    let autoSwitchTimer = null; 
+    let bStage = 'none'; let dStage = 'none'; let sStage = 'none';
+
+    function clearAllRoutes() {
+      detailBg1.style.opacity = '0'; detailBg2.style.opacity = '0'; backBtnA.style.display = 'none';
+      if(autoSwitchTimer) { clearTimeout(autoSwitchTimer); autoSwitchTimer = null; }
+      menuBg.style.opacity = '0'; scrollWindow.style.opacity = '0'; scrollWindow.style.pointerEvents = 'none';
+      page3Bg.style.opacity = '0'; nextPageBg.style.opacity = '0'; backBtnB.style.display = 'none';
+      sectionDGroup.style.opacity = '0'; sectionDGroup.style.pointerEvents = 'none';
+      dDetailText.style.opacity = '0'; dDetailText.style.pointerEvents = 'none';
+      dDetailShape.style.opacity = '0'; dDetailShape.style.pointerEvents = 'none';
+      backBtnD.style.display = 'none';
+      
+      sectionSGroup.style.opacity = '0'; sectionSGroup.style.pointerEvents = 'none';
+      sectionSFrame.style.opacity = '0'; 
+      sDetailPage.style.opacity = '0'; sDetailPage.style.pointerEvents = 'none';
+      backBtnS.style.display = 'none'; sBtnLeft.style.display = 'none'; sBtnRight.style.display = 'none';
+      sLightPanel.classList.remove('slide-up');
+      sTexts.forEach(t => { t.style.pointerEvents = 'none'; t.style.opacity = '0'; });
+      
+      mainBgLayer.style.opacity = '0'; textLayer.style.opacity = '0'; colorBg.style.opacity = '0';
+    }
+
+    function goToHome() {
+      clearAllRoutes();
+      mainBgLayer.style.opacity = '1'; textLayer.style.opacity = '1'; colorBg.style.opacity = '1';
+      colorBg.classList.remove('expand', 'fade-out-white');
+      colorBg.style.animation = 'none'; void colorBg.offsetWidth; colorBg.style.animation = 'bgFade 3s ease-in-out forwards running';
+      texts.forEach(t => { t.classList.remove('selected', 'hidden'); t.style.animationPlayState = 'running'; });
+      bottomNav.style.display = 'none';
+      isInteracting = false; bStage = 'none'; dStage = 'none'; sStage = 'none';
+    }
+
+    function goToSectionD() {
+      clearAllRoutes();
+      sectionDGroup.style.opacity = '1'; sectionDGroup.style.pointerEvents = 'auto';
+      bottomNav.style.display = 'flex'; dStage = 'main';
+    }
+
+    function goToSectionS() {
+      clearAllRoutes();
+      sectionSGroup.style.opacity = '1'; sectionSGroup.style.pointerEvents = 'auto';
+      sectionSFrame.style.opacity = '1'; 
+      bottomNav.style.display = 'flex'; sStage = 'main';
+      
+      // S-Fix 1: Robust Panel Slide Trigger
+      sLightPanel.classList.remove('slide-up');
+      
+      setTimeout(() => { 
+        void sLightPanel.offsetWidth; // Force Reflow
+        sLightPanel.classList.add('slide-up'); 
+      }, 600);
+      
+      // S-Fix 2: Text Fade In
+      setTimeout(() => { 
+        sTexts.forEach((t, index) => { 
+          setTimeout(() => { 
+            t.style.pointerEvents = 'auto'; 
+            t.style.opacity = '1';
+          }, index * 100); 
+        }); 
+      }, 1200);
+    }
+
+    navK.addEventListener('click', goToHome);
+    navD.addEventListener('click', goToSectionD);
+    navS.addEventListener('click', goToSectionS);
+
+    setTimeout(() => { splash.style.opacity = '0'; setTimeout(() => { splash.style.display = 'none'; goToHome(); }, 800); }, 1500);
+
+    // Route A (K)
+    texts.forEach(text => {
+      text.addEventListener('click', function(e) {
+        e.stopPropagation(); if (isInteracting) return; isInteracting = true;
+        mainBgLayer.style.opacity = '0'; colorBg.style.animationPlayState = 'paused'; colorBg.classList.add('expand');
+        texts.forEach(t => { t.style.animationPlayState = 'paused'; if (t === text) t.classList.add('selected'); else t.classList.add('hidden'); });
+        setTimeout(() => { 
+          detailBg1.style.opacity = '1'; textLayer.style.opacity = '0'; 
+          autoSwitchTimer = setTimeout(() => { if (isInteracting) { detailBg1.style.opacity = '0'; detailBg2.style.opacity = '1'; backBtnA.style.display  = 'block'; bottomNav.style.display = 'flex'; } }, 1000); 
+        }, 300);
+      });
+    });
+    backBtnA.addEventListener('click', goToHome);
+
+    // Route B
+    colorBg.addEventListener('click', function() {
+      if (isInteracting) return; isInteracting = true; colorBg.classList.add('fade-out-white'); textLayer.style.opacity = '0'; mainBgLayer.style.opacity = '0';
+      setTimeout(() => { menuBg.style.opacity = '1'; scrollWindow.style.opacity = '1'; scrollWindow.style.pointerEvents = 'auto'; bStage = 'scroll'; bottomNav.style.display = 'flex'; }, 500); 
+    });
+    longImage.addEventListener('click', function() { scrollWindow.style.opacity = '0'; menuBg.style.opacity = '0'; scrollWindow.style.pointerEvents = 'none'; setTimeout(() => { page3Bg.style.opacity = '1'; backBtnB.style.display = 'block'; bStage = 'page3'; }, 300); });
+    page3Bg.addEventListener('click', function() { page3Bg.style.opacity = '0'; setTimeout(() => { nextPageBg.style.opacity = '1'; bStage = 'next'; }, 300); });
+    backBtnB.addEventListener('click', function() { if(bStage === 'page3') { backBtnB.style.display = 'none'; page3Bg.style.opacity = '0'; setTimeout(() => { menuBg.style.opacity='1'; scrollWindow.style.opacity='1'; scrollWindow.style.pointerEvents='auto'; bStage='scroll'; }, 300); } else if (bStage === 'next') { nextPageBg.style.opacity = '0'; setTimeout(() => { page3Bg.style.opacity='1'; bStage='page3'; }, 300); } });
+
+    // Route D
+    dCanvases.forEach(canvas => {
+      canvas.addEventListener('click', function() {
+        dDetailShape.style.opacity = '1'; dDetailShape.style.pointerEvents = 'auto'; 
+        backBtnD.style.display = 'block'; dStage = 'detail'; 
+        bottomNav.style.display = 'flex';
+      });
+    });
+    dLabels.forEach(label => { 
+      label.addEventListener('click', function() { 
+        dDetailText.style.opacity = '1'; dDetailText.style.pointerEvents = 'auto'; 
+        backBtnD.style.display = 'block'; dStage = 'detail'; 
+        bottomNav.style.display = 'flex'; 
+      }); 
+    });
+    backBtnD.addEventListener('click', function() { 
+      dDetailShape.style.opacity = '0'; dDetailShape.style.pointerEvents = 'none'; 
+      dDetailText.style.opacity = '0'; dDetailText.style.pointerEvents = 'none'; 
+      backBtnD.style.display = 'none'; dStage = 'main'; 
+      bottomNav.style.display = 'flex'; 
+    });
+
+    // Route S
+    sTexts.forEach(txt => {
+      txt.addEventListener('click', function() {
+        sDetailPage.style.opacity = '1'; sDetailPage.style.pointerEvents = 'auto';
+        backBtnS.style.display = 'block'; sStage = 'detail';
+        sBtnLeft.style.display = 'block'; sBtnRight.style.display = 'block';
+        bottomNav.style.display = 'flex';
+      });
+    });
+    sBtnLeft.addEventListener('click', function(){ alert('Application Form'); });
+    sBtnRight.addEventListener('click', function(){ alert('LINE Request'); });
+    backBtnS.addEventListener('click', function() {
+      sDetailPage.style.opacity = '0'; sDetailPage.style.pointerEvents = 'none';
+      backBtnS.style.display = 'none'; sStage = 'main';
+      sBtnLeft.style.display = 'none'; sBtnRight.style.display = 'none';
+    });
+  };
+</script>
+
+</body>
+</html>

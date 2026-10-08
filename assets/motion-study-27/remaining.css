@@ -1,0 +1,61 @@
+html{scroll-behavior:auto!important}
+html body,html body *{cursor:default!important}.e11-cursor{display:none!important}
+.e03-percent{overflow:visible!important;width:1.5em!important;letter-spacing:0!important}.e20-percent-ink{overflow:visible!important}
+.e27-app-mask,.e27-copy-mask{display:inline-block;overflow:clip;vertical-align:bottom;line-height:inherit;padding:0 .02em;margin:0 -.02em}
+.e27-app-mask>.e19-project-ink,.e27-copy-ink{display:inline-block;will-change:transform;opacity:1!important;white-space:pre;line-height:inherit}
+#projects :is(#branding,#editorial,#graphic)>article.e27-stage,#projects>#portfolio2026.e27-stage{position:relative!important;height:calc(var(--e27-screens)*100vh)!important;padding:0!important;margin:0!important;min-height:0!important;overflow:visible!important;background:white!important}
+#projects .e27-board{position:sticky!important;top:60px!important;height:calc(100vh - 60px)!important;width:100%!important;overflow:hidden!important;background:white;isolation:isolate}
+#projects .e27-board>.project-head,#projects .e27-board>.portfolio-head{position:absolute!important;left:0!important;top:24px!important;width:100%!important;max-width:none!important;height:auto!important;min-height:0!important;margin:0!important;padding:0 3.6vw!important;z-index:5!important;opacity:1!important;pointer-events:none!important;background:transparent!important;box-sizing:border-box!important;color:#111!important;transition:none!important}
+#projects .e27-board .project-title{color:var(--pink)!important}
+#projects .e27-board .project-desc{color:#111!important}
+.e27-floor{position:absolute;inset:0;--head-space:240px;overflow:hidden}
+#projects .e27-panel{position:absolute!important;inset:var(--head-space) 5vw 32px!important;width:auto!important;height:auto!important;max-width:none!important;margin:0!important;padding:0!important;background:white;display:grid;place-items:center;gap:28px;will-change:transform}
+#projects .e27-panel>figure{margin:0;padding:0;min-width:0;min-height:0;width:100%;height:100%;position:relative;display:flex;align-items:center;justify-content:center;overflow:hidden;background:white}
+#projects .e27-panel>figure>img,#projects .e27-panel>figure>video{position:static!important;display:block!important;width:100%!important;height:100%!important;max-width:100%!important;max-height:100%!important;object-fit:contain!important;margin:0!important;transform:none!important}
+#projects .e27-hotel-world>figure{position:absolute;overflow:hidden}
+#projects .e27-hotel-world>figure>video{object-fit:contain!important}
+#projects :is(.e27-type-world,.e27-design-strip)>figure{position:absolute;left:4%;top:0;width:92%;height:100%;will-change:transform}
+#projects .e27-design-strip>figure{left:2%;width:96%}
+#projects .e27-aota-pair{grid-template-columns:1fr 1fr;left:15vw!important;right:15vw!important;gap:4vw}
+#projects .e27-wp-type{left:10vw!important;right:10vw!important}
+#projects .e27-wp-badge{grid-template-columns:1.25fr .75fr;left:8vw!important;right:8vw!important;gap:5vw}
+#projects .e27-wp-live{grid-template-columns:1fr 1fr;left:20vw!important;right:20vw!important;gap:5vw}
+#projects .e27-wp-objects>figure,#projects .e27-paper-stack>figure{position:absolute;left:50%;top:50%;width:min(684px,76vw);height:min(100%,440px);margin-left:calc(min(684px,76vw)/-2);margin-top:calc(min(100%,440px)/-2);overflow:visible;transform-origin:center}
+#projects .e27-wp-objects>figure:not(:first-child),#projects .e27-paper-stack>figure.portrait{width:min(432px,52vw);height:100%;margin-left:calc(min(432px,52vw)/-2);margin-top:0;top:0}
+#projects .e27-paper-stack>figure.landscape{aspect-ratio:2/1;height:auto;max-height:100%;top:50%;margin-top:0;translate:0 -50%}
+#projects .e27-paper-stack>figure.portrait{height:min(100%,576px);aspect-ratio:3/4;width:auto;max-width:52vw;margin-left:0;left:50%;translate:-50% 0}
+#projects .e27-paper-stack>figure>img{object-fit:cover!important;background:#fff}
+#projects :is(.e27-reader,.e27-books){inset:20px 6vw 24px!important;grid-template-columns:1fr;gap:30px;--book-growth:0;--book-lift:0px}
+#projects .e27-books{grid-template-columns:1.2fr .8fr;left:3vw!important;right:3vw!important}
+#projects :is(.e27-reader,.e27-books)>figure{transform:translateY(var(--book-lift)) scale(calc(.86 + var(--book-growth)*.14));transform-origin:center;overflow:visible;background:transparent}
+#projects :is(.e27-reader,.e27-books)>figure>iframe{width:100%!important;height:100%!important;min-height:0!important;max-width:none!important;border:0!important;background:white!important;margin:0!important;position:static!important}
+#projects :is(.e27-reader,.e27-books)>figure>section{position:relative!important;width:100%!important;height:100%!important;min-height:0!important;max-width:none!important;padding:0!important;margin:0!important;background:white!important}
+#projects :is(.e27-reader,.e27-books)>figure>section>iframe{width:100%!important;height:100%!important;min-height:0!important;max-width:none!important;border:0!important;background:white!important}
+#projects .e27-reader :is(.hozzz-reader-hint-v96,.aota-reader-hint-v96){display:none!important}
+#projects .e27-portfolio{left:14vw!important;right:14vw!important}
+#projects #branding>.e27-vegetaria{position:relative!important;padding-top:0!important;overflow:hidden!important;margin:0!important;padding-bottom:100px!important}
+#projects .e27-vegetaria>.project-head,#projects .e27-authored>.project-head{position:sticky!important;top:84px!important;padding:0 3.6vw!important;margin:0!important;width:100%!important;height:auto!important;z-index:10!important;background:white!important;transition:none!important}
+#projects .e27-vegetaria>.vegetaria-v78-visuals{padding-top:0!important;margin-top:65px!important}
+.e27-vegetaria .veg-item-v78{transition:translate 1.15s cubic-bezier(.18,.72,.19,1),rotate 1.15s cubic-bezier(.18,.72,.19,1);transition-delay:var(--veg-delay);translate:calc(var(--veg-x)*110vw) calc(var(--veg-y)*60vh);rotate:var(--veg-angle)}
+.e27-vegetaria.e27-veg-entered .veg-item-v78{translate:0 0;rotate:0deg}
+.e25-signatures{display:flex;align-items:center;justify-content:center;gap:6vw;padding:50px 8vw;min-height:50vh}.e25-signatures img{width:24%;height:160px;object-fit:contain;animation:e27-signature 5s ease-in-out infinite}.e25-signatures img:nth-child(2){animation-delay:-1.65s}.e25-signatures img:nth-child(3){animation-delay:-3.3s}@keyframes e27-signature{0%,100%{transform:translateY(5px) rotate(-2deg)}50%{transform:translateY(-7px) rotate(2deg)}}
+.ending{padding-top:0!important}.ending .marquee-line{display:none!important}.ending-foot{margin-top:0!important;padding-bottom:32px!important}
+.e27-trail{position:fixed;inset:0;z-index:9990;pointer-events:none!important;overflow:hidden;contain:strict}.e27-mark{position:absolute;pointer-events:none!important;display:grid;place-items:center;transform-origin:center;will-change:transform,opacity}.e27-mark svg,.e27-mark img{width:100%;height:100%;object-fit:contain}.e27-hozzz{position:absolute;height:23px;display:flex;align-items:center;gap:2px;opacity:0;transition:opacity .14s;pointer-events:none}.e27-hozzz img{height:23px;width:auto;object-fit:contain}
+@media(max-width:680px){
+ .topnav{padding:0 14px;grid-template-columns:72px 1fr auto;gap:12px}.topnav .logo-wrap{width:70px}.topnav .room{font-size:13px}.topnav .nav-right{font-size:13px;gap:12px}.locator{display:none!important}
+ #projects .e27-board>.project-head,#projects .e27-board>.portfolio-head{padding:0 18px!important;font-size:12px!important}
+ #projects .e27-panel{left:18px!important;right:18px!important;gap:14px}
+ #projects .e27-aota-pair,#projects .e27-wp-live{left:8vw!important;right:8vw!important;gap:12px}
+ #projects .e27-wp-badge{left:18px!important;right:18px!important;grid-template-columns:1fr .7fr;gap:10px}
+ #projects .e27-books{grid-template-columns:1fr 1fr;gap:8px}.e25-signatures img{height:80px}
+ #projects .e27-board .project-desc{font-size:11px}
+}
+@media(prefers-reduced-motion:reduce){.e27-trail{display:none}.e25-signatures img{animation:none}.e27-vegetaria .veg-item-v78{transition:none;translate:0 0;rotate:0deg}}
+html,body{overflow-x:clip!important}
+#projects #branding>.e27-vegetaria{overflow:clip!important}
+.e27-floor{clip-path:inset(var(--clip-head,var(--head-space)) 0 0 0)}
+#projects .e27-wp-badge>figure:first-child>img{clip-path:inset(2px 0 0 0)}
+#projects .e27-wp-badge>figure:last-child>video{clip-path:inset(0 1px)}
+#projects .e27-paper-stack>figure.landscape{aspect-ratio:3/2}
+#projects .e27-paper-stack>figure.landscape>img{object-fit:contain!important}
+#projects .e27-authored>.project-head .project-desc,#projects .e27-authored>.project-head .project-desc *{color:#111!important;text-shadow:none!important}
