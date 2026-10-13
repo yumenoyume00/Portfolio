@@ -3,6 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="preload" as="image" href="assets/images/image-0004.jpg" fetchpriority="high">
+<link rel="preload" as="image" href="assets/images/image-0005.jpg" fetchpriority="high">
+<link rel="preload" as="image" href="assets/images/image-0006.jpg" fetchpriority="high">
+<link rel="preload" as="image" href="assets/images/image-0007.jpg" fetchpriority="high">
   <title>ZOU MENG — Portfolio</title>
 <script id="landing-start-position-v128">
   if ('scrollRestoration' in history) history.scrollRestoration = 'manual';
@@ -4106,6 +4110,13 @@ body.e03-nav-ready .topnav a{animation:e03-nav-reveal .65s cubic-bezier(.22,1,.3
 }
 </style>
 
+
+<style id="safari-home-photo-geometry">
+/* Stable thumbnail slots before fonts/images finish; avoid auto/100% cycles. */
+.about-right .hover-pair .inline-life-img.school{width:61.333px!important;height:46px!important;}
+.about-right .hover-pair .inline-life-img.band{width:66.000px!important;height:44px!important;}
+.about-right .hover-pair .inline-life-img.exhibition{width:37.500px!important;height:50px!important;}
+</style>
 <style id="home-photo-fixes-study-09">
 .about:not(.e09-photos-ready) .inline-life-img{visibility:hidden!important;}
 .about .about-stage,.about .about-grid,.about .about-panel{transition:none!important;}
@@ -4265,7 +4276,7 @@ body.e04-boards-waiting .about-panel{transform:translateY(24px)!important;}
           <div class="portrait-wrap">
             <div class="portrait-inner">
               <div class="portrait-card">
-                <img src="assets/images/image-0004.jpg" alt="Portrait of Zou Meng">
+                <img src="assets/images/image-0004.jpg" loading="eager" fetchpriority="high" decoding="async" alt="Portrait of Zou Meng">
               </div>
             </div>
           </div>
@@ -4296,21 +4307,21 @@ body.e04-boards-waiting .about-panel{transform:translateY(24px)!important;}
         <div class="about-story"><p>
           I studied Environmental Design in China before becoming more interested in visual communication.
           Right now, I am studying
-          <span class="hover-pair"><span class="hover-word">Visual Design at Kuwasawa</span><span class="inline-life-img school"><img src="assets/images/image-0005.jpg" alt="At Kuwasawa Design School"></span></span>
+          <span class="hover-pair"><span class="hover-word">Visual Design at Kuwasawa</span><span class="inline-life-img school"><img src="assets/images/image-0005.jpg" loading="eager" fetchpriority="high" decoding="async" alt="At Kuwasawa Design School"></span></span>
           in Tokyo, working across UI/UX, branding, editorial and graphic design.
         </p></div>
 
         <div class="about-story"><p>
           I’m an outgoing ENTP who enjoys talking with people and stepping into unfamiliar environments.
           During university in China, I played
-          <span class="hover-pair"><span class="hover-word">bass in a band</span><span class="inline-life-img band"><img src="assets/images/image-0006.jpg" alt="Playing bass on stage"></span></span>
+          <span class="hover-pair"><span class="hover-word">bass in a band</span><span class="inline-life-img band"><img src="assets/images/image-0006.jpg" loading="eager" fetchpriority="high" decoding="async" alt="Playing bass on stage"></span></span>
           and spent several years doing debate.
           Since coming to Japan to study, I have also worked as an exhibition interpreter, taught Japanese and worked at a gallery.
         </p></div>
 
         <div class="about-story"><p>
           I enjoy learning languages and
-          <span class="hover-pair"><span class="hover-word">visiting exhibitions</span><span class="inline-life-img exhibition"><img src="assets/images/image-0007.jpg" alt="Visiting an exhibition"></span></span>.
+          <span class="hover-pair"><span class="hover-word">visiting exhibitions</span><span class="inline-life-img exhibition"><img src="assets/images/image-0007.jpg" loading="eager" fetchpriority="high" decoding="async" alt="Visiting an exhibition"></span></span>.
           I also like making collages from posters and flyers I collect.
           I hope to become a designer who can connect clear visual systems with engaging digital experiences.
         </p></div>
@@ -14121,8 +14132,14 @@ document.querySelectorAll('.paper').forEach(p=>p.onclick=()=>p.classList.toggle(
  });
  portrait.addEventListener('pointerenter',()=>{if(finished){portraitHovered=true;schedule();}});
  portrait.addEventListener('pointerleave',()=>{portraitHovered=false;schedule();});
- const prepared=Promise.all([document.fonts.ready,...photos.map(pair=>pair.querySelector('img').decode().catch(()=>{}))]).then(()=>{measure();});
- addEventListener('e04-home-ready',()=>{prepared.then(()=>{ready=true;measure();introStart=performance.now();paint(introStart);about.classList.add('e09-photos-ready');});});
+ // Start with the home handover, never wait for all image decodes or fonts.
+ // In Safari/slow networks that barrier left every home photograph hidden.
+ const refreshMetrics=()=>{if(ready){measure();schedule();}};
+ [portrait.querySelector('img'),...photos.map(pair=>pair.querySelector('img'))].forEach(image=>{
+  if(!image.complete)image.addEventListener('load',refreshMetrics,{once:true});
+ });
+ document.fonts.ready.then(refreshMetrics);
+ addEventListener('e04-home-ready',()=>{ready=true;measure();introStart=performance.now();about.classList.add('e09-photos-ready');paint(introStart);},{once:true});
  addEventListener('scroll',schedule,{passive:true});addEventListener('resize',()=>{if(ready){measure();schedule();}});
 })();
 </script>
