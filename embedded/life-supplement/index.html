@@ -58,7 +58,7 @@ html[data-book-state="open"]{--ui-side:calc(50% - var(--page-w))}
 </style>
 </head>
 <body>
-<div class="loading" id="loading">LOADING PDF…</div>
+<div class="loading" id="loading">LOADING BOOK…</div>
 <button class="reset" id="reset">RESET</button>
 <div class="counter" id="counter">—</div>
 <div class="hint">CLICK!</div>
@@ -76,7 +76,7 @@ html[data-book-state="open"]{--ui-side:calc(50% - var(--page-w))}
 </div>
 
 <script>
-const SPREADS=["assets/image-0001.png", "assets/image-0002.png", "assets/image-0003.png", "assets/image-0004.png", "assets/image-0005.png", "assets/image-0006.png", "assets/image-0007.png", "assets/image-0008.png", "assets/image-0009.png", "assets/image-0010.png", "assets/image-0011.png", "assets/image-0012.png", "assets/image-0013.png", "assets/image-0014.png", "assets/image-0015.png"];
+const SPREADS=["assets/web/spread-001.webp", "assets/web/spread-002.webp", "assets/web/spread-003.webp", "assets/web/spread-004.webp", "assets/web/spread-005.webp", "assets/web/spread-006.webp", "assets/web/spread-007.webp", "assets/web/spread-008.webp", "assets/web/spread-009.webp", "assets/web/spread-010.webp", "assets/web/spread-011.webp", "assets/web/spread-012.webp", "assets/web/spread-013.webp", "assets/web/spread-014.webp", "assets/web/spread-015.webp"];
 const SNAP_TIME=320;
 const book=document.getElementById('book'),loading=document.getElementById('loading'),counter=document.getElementById('counter');
 const leftPage=document.getElementById('leftPage'),rightPage=document.getElementById('rightPage'),leaf=document.getElementById('leaf');
@@ -84,7 +84,7 @@ const frontFace=document.getElementById('frontFace'),backFace=document.getElemen
 let pageWidth=420,pageHeight=594,pages=[],position=0,busy=false;
 function canvasOf(el){return el.querySelector('canvas')}
 function paint(el,index){
-  const target=canvasOf(el);if(index<0||index>=pages.length){target.width=1;target.height=1;el.classList.add('hidden');return}
+  const target=canvasOf(el);if(index<0||index>=pages.length||!pages[index]){target.width=1;target.height=1;el.classList.add('hidden');return}
   el.classList.remove('hidden');const source=pages[index];target.width=source.width;target.height=source.height;const c=target.getContext('2d',{alpha:false});c.fillStyle='#fff';c.fillRect(0,0,target.width,target.height);c.drawImage(source,0,0)
 }
 function shape(el,side){el.classList.remove('left','right');el.classList.add(side)}
@@ -104,8 +104,18 @@ function half(source,side){
   ctx.drawImage(source,side==='left'?0:source.naturalWidth/2,0,source.naturalWidth/2,source.naturalHeight,0,0,out.width,out.height);return out
 }
 function loadImage(url){return new Promise((resolve,reject)=>{const img=new Image();img.onload=()=>resolve(img);img.onerror=reject;img.src=url})}
-function flip(dir){
-  if(busy)return;if(dir>0&&position>=pages.length-1)return;if(dir<0&&position<=0)return;busy=true;const from=position;
+
+const spreadLoads=new Map();
+function ensurePage(index){
+ if(index<0||index>=pages.length||pages[index])return Promise.resolve();
+ const cover=index===0||index===pages.length-1,spread=cover?0:Math.ceil(index/2),side=index===0?'right':index===pages.length-1?'left':index%2?'left':'right';
+ if(!spreadLoads.has(spread)){const task=loadImage(SPREADS[spread]);spreadLoads.set(spread,task);task.catch(()=>spreadLoads.delete(spread));}
+ return spreadLoads.get(spread).then(image=>{pages[index]=half(image,side);});
+}
+function prefetchPages(){for(const i of [position+1,position+2,position+3])ensurePage(i).catch(()=>{});}
+
+async function flip(dir){
+  if(busy)return;if(dir>0&&position>=pages.length-1)return;if(dir<0&&position<=0)return;busy=true;const from=position;try{await Promise.all([from-2,from-1,from,from+1,from+2,from+3].map(ensurePage));}catch(error){busy=false;console.error(error);return;}
   document.documentElement.dataset.bookState='open';
   if(dir>0){
     const front=from===0?0:from+1,back=from===0?1:from+2,next=from===0?1:from+2;
@@ -117,7 +127,7 @@ function flip(dir){
     leaf.className='leaf prev active';shape(frontFace,'left');shape(backFace,'right');paint(frontFace,front);paint(backFace,back);
   }
   requestAnimationFrame(()=>requestAnimationFrame(()=>leaf.classList.add('go')));
-  setTimeout(()=>{position=dir>0?(from===0?1:Math.min(from+2,pages.length-1)):(from===pages.length-1?pages.length-3:Math.max(from-2,0));show();busy=false},SNAP_TIME+25)
+  setTimeout(()=>{position=dir>0?(from===0?1:Math.min(from+2,pages.length-1)):(from===pages.length-1?pages.length-3:Math.max(from-2,0));show();busy=false;prefetchPages()},SNAP_TIME+25)
 }
 document.getElementById('next').onclick=()=>flip(1);document.getElementById('prev').onclick=()=>flip(-1);
 document.getElementById('reset').onclick=()=>{if(!busy){position=0;show()}};
@@ -130,11 +140,10 @@ document.addEventListener('pointerleave',()=>{
 });
 addEventListener('keydown',e=>{if(e.key==='ArrowRight'||e.key===' ')flip(1);if(e.key==='ArrowLeft')flip(-1)});
 (async()=>{try{
-  const spreads=[];for(let i=0;i<SPREADS.length;i++){loading.textContent=`LOADING ${i+1} / ${SPREADS.length}`;spreads.push(await loadImage(SPREADS[i]))}
-  const ratio=(spreads[0].naturalWidth/2)/spreads[0].naturalHeight;pageHeight=Math.round(Math.min(innerHeight*.72,(innerWidth*.84/2)/ratio));pageWidth=Math.round(pageHeight*ratio);if(pageWidth%2)pageWidth++;if(pageHeight%2)pageHeight++;
-  document.documentElement.style.setProperty('--page-w',pageWidth+'px');document.documentElement.style.setProperty('--page-h',pageHeight+'px');
-  pages.push(half(spreads[0],'right'));for(let i=1;i<spreads.length;i++){pages.push(half(spreads[i],'left'));pages.push(half(spreads[i],'right'))}pages.push(half(spreads[0],'left'));
-  show();loading.classList.add('done')
+ const cover=await loadImage(SPREADS[0]);spreadLoads.set(0,Promise.resolve(cover));pages=new Array(SPREADS.length*2);
+ const ratio=(cover.naturalWidth/2)/cover.naturalHeight;pageHeight=Math.round(Math.min(innerHeight*.72,(innerWidth*.84/2)/ratio));pageWidth=Math.round(pageHeight*ratio);if(pageWidth%2)pageWidth++;if(pageHeight%2)pageHeight++;
+ document.documentElement.style.setProperty('--page-w',pageWidth+'px');document.documentElement.style.setProperty('--page-h',pageHeight+'px');
+ await ensurePage(0);show();loading.classList.add('done');prefetchPages();
 }catch(e){console.error(e);loading.textContent='BOOK LOAD ERROR'}})();
 </script>
 </body>

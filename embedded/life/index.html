@@ -53,7 +53,7 @@ html[data-book-state="open"]{--ui-side:calc(50% - var(--page-w))}
 </style>
 </head>
 <body>
-<div class="loading" id="loading">LOADING PDF…</div>
+<div class="loading" id="loading">LOADING BOOK…</div>
 <button class="reset" id="reset">RESET</button>
 <div class="counter" id="counter">—</div>
 <div class="hint">CLICK!</div>
@@ -69,7 +69,7 @@ html[data-book-state="open"]{--ui-side:calc(50% - var(--page-w))}
     <button class="hit next" id="next" aria-label="下一页"></button>
   </div>
 </div>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
 <script>
 const PDF_URL="assets/document-0001.pdf";
 const SNAP_TIME=320;
@@ -77,10 +77,19 @@ const book=document.getElementById('book'),loading=document.getElementById('load
 const leftPage=document.getElementById('leftPage'),rightPage=document.getElementById('rightPage'),leaf=document.getElementById('leaf');
 const frontFace=document.getElementById('frontFace'),backFace=document.getElementById('backFace');
 let pageWidth=420,pageHeight=594,pages=[],position=0,busy=false;
-pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+let pageSources=[],pageLoads=new Map();
+function ensurePage(index){
+ if(index<0||index>=pages.length||pages[index])return Promise.resolve();
+ if(pageLoads.has(index))return pageLoads.get(index);
+ const task=new Promise((resolve,reject)=>{const image=new Image();image.decoding='async';image.onload=()=>{pages[index]=image;resolve();};image.onerror=reject;image.src=pageSources[index];});
+ pageLoads.set(index,task);task.catch(()=>pageLoads.delete(index));return task;
+}
+function prefetchPages(){for(let i=1;i<pages.length;i++)if(pages[i]&&Math.abs(i-position)>6){pages[i]=undefined;pageLoads.delete(i);}for(const i of [position+1,position+2,position+3])ensurePage(i).catch(()=>{});}
+
 function canvasOf(el){return el.querySelector('canvas')}
 function paint(el,index){
-  const target=canvasOf(el);if(index<0||index>=pages.length){target.width=1;target.height=1;el.classList.add('hidden');return}
+  const target=canvasOf(el);if(index<0||index>=pages.length||!pages[index]){target.width=1;target.height=1;el.classList.add('hidden');return}
   el.classList.remove('hidden');const source=pages[index];target.width=source.width;target.height=source.height;
   const c=target.getContext('2d',{alpha:false});c.fillStyle='#fff';c.fillRect(0,0,target.width,target.height);c.drawImage(source,0,0)
 }
@@ -100,8 +109,8 @@ async function renderPage(pdf,index,scale){
   context.fillStyle='#fff';context.fillRect(0,0,canvas.width,canvas.height);context.imageSmoothingEnabled=true;context.imageSmoothingQuality='high';
   await pdfPage.render({canvasContext:context,viewport}).promise;pdfPage.cleanup();return canvas
 }
-function flip(dir){
-  if(busy)return;if(dir>0&&position>=pages.length-1)return;if(dir<0&&position<=0)return;busy=true;const from=position;
+async function flip(dir){
+  if(busy)return;if(dir>0&&position>=pages.length-1)return;if(dir<0&&position<=0)return;busy=true;const from=position;try{await Promise.all([from-2,from-1,from,from+1,from+2,from+3].map(ensurePage));}catch(error){busy=false;console.error(error);return;}
   document.documentElement.dataset.bookState='open';
   if(dir>0){
     const front=from===0?0:from+1,back=from===0?1:from+2,next=from===0?1:from+2;
@@ -113,7 +122,7 @@ function flip(dir){
     leaf.className='leaf prev active';shape(frontFace,'left');shape(backFace,'right');paint(frontFace,front);paint(backFace,back)
   }
   requestAnimationFrame(()=>requestAnimationFrame(()=>leaf.classList.add('go')));
-  setTimeout(()=>{position=dir>0?(from===0?1:Math.min(from+2,pages.length-1)):(from===pages.length-1?pages.length-3:Math.max(from-2,0));show();busy=false},SNAP_TIME+25)
+  setTimeout(()=>{position=dir>0?(from===0?1:Math.min(from+2,pages.length-1)):(from===pages.length-1?pages.length-3:Math.max(from-2,0));show();busy=false;prefetchPages()},SNAP_TIME+25)
 }
 document.getElementById('next').onclick=()=>flip(1);document.getElementById('prev').onclick=()=>flip(-1);
 document.getElementById('reset').onclick=()=>{if(!busy){position=0;show()}};
@@ -126,13 +135,11 @@ document.addEventListener('pointerleave',()=>{
 });
 addEventListener('keydown',event=>{if(event.key==='ArrowRight'||event.key===' ')flip(1);if(event.key==='ArrowLeft')flip(-1)});
 (async()=>{try{
-  const pdf=await pdfjsLib.getDocument({url:PDF_URL}).promise,first=await pdf.getPage(1),natural=first.getViewport({scale:1});
-  const ratio=natural.width/natural.height;pageHeight=Math.round(Math.min(innerHeight*.72,(innerWidth*.84/2)/ratio));pageWidth=Math.round(pageHeight*ratio);
-  if(pageWidth%2)pageWidth++;if(pageHeight%2)pageHeight++;
-  document.documentElement.style.setProperty('--page-w',pageWidth+'px');document.documentElement.style.setProperty('--page-h',pageHeight+'px');
-  const quality=Math.min(2.2,Math.max(1.55,devicePixelRatio*1.15)),scale=(pageHeight/natural.height)*quality;
-  for(let i=1;i<=pdf.numPages;i++){loading.textContent=`RENDERING ${i} / ${pdf.numPages}`;pages.push(await renderPage(pdf,i,scale))}
-  show();loading.classList.add('done')
+ const response=await fetch('assets/web/pages.json');if(!response.ok)throw new Error('Book pages unavailable');pageSources=await response.json();pages=new Array(pageSources.length);
+ await ensurePage(0);const first=pages[0],ratio=first.naturalWidth/first.naturalHeight;
+ pageHeight=Math.round(Math.min(innerHeight*.72,(innerWidth*.84/2)/ratio));pageWidth=Math.round(pageHeight*ratio);if(pageWidth%2)pageWidth++;if(pageHeight%2)pageHeight++;
+ document.documentElement.style.setProperty('--page-w',pageWidth+'px');document.documentElement.style.setProperty('--page-h',pageHeight+'px');
+ show();loading.classList.add('done');prefetchPages();
 }catch(error){console.error(error);loading.textContent='BOOK LOAD ERROR'}})();
 </script>
 </body>
