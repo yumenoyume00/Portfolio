@@ -178,3 +178,8 @@ body.e04-boards-waiting .about-panel{transform:translateY(65vh)!important;opacit
 #projects .e27-paper-stack>figure:is(.landscape,.portrait)>img{aspect-ratio:auto!important;max-width:none!important;max-height:none!important;flex:none;object-fit:cover!important;object-position:50% 50%!important}
 .e31-signature-scene{height:max(300px,calc(100svh - 60px - var(--e32-footer-height,112px)))!important}
 .e31-signature-scene .e25-signatures{position:relative!important;top:0!important;height:100%!important;padding:40px 8vw!important}
+
+/* Crop the media itself rather than a letterboxed container. */
+#projects .e27-wp-badge>figure{justify-self:center;align-self:center;max-width:100%;overflow:hidden!important}
+#projects .e27-wp-badge>figure:first-child>img{object-fit:cover!important;clip-path:inset(.65% .65%)!important;scale:1!important}
+#projects .e27-wp-badge>figure:last-child>video{object-fit:cover!important;clip-path:inset(.4% 1.2%)!important;scale:1!important}

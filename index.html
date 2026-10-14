@@ -4225,7 +4225,7 @@ body.e04-boards-waiting .about-panel{transform:translateY(24px)!important;}
 .app-scroll-stage-v100[data-e23-cursor="4"]{--e24-cursor:url("data:image/svg+xml,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20width%3D%2232%22%20height%3D%2232%22%20viewBox%3D%220%200%2032%2032%22%3E%3Cdefs%3E%3CradialGradient%20id%3D%22g%22%3E%3Cstop%20stop-color%3D%22%2342e4f5%22%2F%3E%3Cstop%20offset%3D%221%22%20stop-color%3D%22%23d9fbfc%22%20stop-opacity%3D%22.25%22%2F%3E%3C%2FradialGradient%3E%3C%2Fdefs%3E%3Ccircle%20cx%3D%2216%22%20cy%3D%2216%22%20r%3D%2213%22%20fill%3D%22url%28%23g%29%22%2F%3E%3Ccircle%20cx%3D%2216%22%20cy%3D%2216%22%20r%3D%222%22%20fill%3D%22%2342e4f5%22%2F%3E%3C%2Fsvg%3E") 16 16,auto;}
 }
 </style>
-<link rel="stylesheet" href="assets/motion-study-32/remaining.css?v=32">
+<link rel="stylesheet" href="assets/motion-study-32/remaining.css?v=20261014">
 </head>
 <body class="is-landing about-intro-pending">
 
@@ -5668,7 +5668,6 @@ render();
 
         window.addEventListener(&#x27;DOMContentLoaded&#x27;, () =&gt; {
             switchPage(&#x27;splash&#x27;);
-            startAutoDemo();
         });
     &lt;/script&gt;
 &lt;/body&gt;
@@ -12895,7 +12894,7 @@ init();
 <section class="category watched-category" id="graphic" data-id="graphic">
 <div class="category-label">GRAPHIC</div><article class="project e25-graphic-project">
 <div class="project-head"><div class="project-title">Graphic</div></div>
-<div class="e25-print-wall" aria-label="Posters and packaging"><figure><img data-perf-src="assets/web/assets/images/image-0084.webp" alt="MUJI summer poster" width="2200" height="1237" loading="lazy" decoding="async"></figure><figure><img data-perf-src="assets/web/assets/images/image-0086.webp" alt="Chocolate packaging range" width="6000" height="4000" loading="lazy" decoding="async"></figure><figure><img data-perf-src="assets/web/assets/images/image-0085.webp" alt="Suntory poster" width="1652" height="2200" loading="lazy" decoding="async"></figure><figure><img data-perf-src="assets/web/assets/images/image-0087.webp" alt="Tomato packaging" width="2400" height="1600" loading="lazy" decoding="async"></figure><figure><img data-perf-src="assets/web/assets/images/image-0088.webp" alt="Apple packaging" width="590" height="384" loading="lazy" decoding="async"></figure></div></article></section>
+<div class="e25-print-wall" aria-label="Posters and packaging"><figure><img data-perf-src="assets/web/assets/images/image-0084.webp" alt="MUJI summer poster" width="2200" height="1237" loading="lazy" decoding="async"></figure><figure><img data-perf-src="assets/update-20261014/chocolate.webp" alt="Chocolate packaging range" width="6000" height="4000" loading="lazy" decoding="async"></figure><figure><img data-perf-src="assets/web/assets/images/image-0085.webp" alt="Suntory poster" width="1652" height="2200" loading="lazy" decoding="async"></figure><figure><img data-perf-src="assets/web/assets/images/image-0087.webp" alt="Tomato packaging" width="2400" height="1600" loading="lazy" decoding="async"></figure><figure><img data-perf-src="assets/web/assets/images/image-0088.webp" alt="Apple packaging" width="590" height="384" loading="lazy" decoding="async"></figure></div></article></section>
 <section class="category watched-category" id="illustration" data-id="illustration">
   <div class="category-label">ILLUSTRATION / TYPOGRAPHY</div>
   <article class="project blooming-project-v97">
@@ -14088,7 +14087,7 @@ document.querySelectorAll('.paper').forEach(p=>p.onclick=()=>p.classList.toggle(
   photos.forEach((_,i)=>{resizePhoto(i,1);rightHeight=Math.max(rightHeight,right.offsetHeight);resizePhoto(i,0);});
   left.style.minHeight="0";right.style.minHeight="0";
   const height=stage.offsetHeight;stage.style.minHeight=`${height}px`;origin=about.getBoundingClientRect().top+scrollY;
-  travel=!released&&innerWidth>850&&!reduced?innerHeight*1.75:0;overflow=Math.max(0,height-innerHeight);
+  travel=!released&&innerWidth>850&&!reduced?innerHeight*.8:0;overflow=Math.max(0,height-innerHeight);
   if(travel){about.style.setProperty('--e04-story-height',`${height+travel}px`);about.classList.add('e04-scroll-story');}
  }
  function paint(now){frame=0;if(!ready)return;
@@ -14106,8 +14105,8 @@ document.querySelectorAll('.paper').forEach(p=>p.onclick=()=>p.classList.toggle(
   portrait.querySelector('.portrait-inner').style.height=`${portraitHeight}px`;
   portrait.querySelector('.portrait-card').style.opacity=String(Math.min(1,portraitAmount));
   portrait.querySelector('.portrait-card').style.transform=`translateY(${-8*(1-portraitAmount)}px) scale(${.78+.22*portraitAmount})`;portrait.querySelector('.portrait-card').style.transformOrigin='50% 15%';
-  let amounts=[ease(clamp((progress-.08)/.18))*(1-ease(clamp((progress-.32)/.16))),ease(clamp((progress-.38)/.18))*(1-ease(clamp((progress-.64)/.14))),ease(clamp((progress-.70)/.16))*(1-ease(clamp((progress-.91)/.09)))];
-  if(!finished&&progress>=.9999){finished=true;about.classList.add('e07-finished');restAmounts=reduced?[0,0,0]:amounts.slice();restPortrait=0;}
+  let amounts=[ease(clamp((progress-.08)/.30))*(1-ease(clamp((progress-.48)/.30))),0,0];
+  if(!finished&&progress>=.80){finished=true;about.classList.add('e07-finished');restAmounts=reduced?[0,0,0]:amounts.slice();restPortrait=0;}
   let settling=false;
   if(finished){amounts=restAmounts.map((value,i)=>{const goal=hovered===i?1:0;let next=reduced?goal:value+(goal-value)*(1-Math.exp(-dt/135));if(Math.abs(goal-next)<.0002)next=goal;else settling=true;return next;});restAmounts=amounts;
    if(restPortrait!==Number(portraitHovered))settling=true;
@@ -14304,7 +14303,7 @@ function paint(now){frame=0;const visible=getComputedStyle(panel).display!=='non
 function schedule(){if(!frame)frame=requestAnimationFrame(paint);}addEventListener('pointermove',e=>{tx=(e.clientX/innerWidth-1)*innerWidth*.9;ty=(e.clientY/innerHeight-1)*innerHeight*.82;schedule();},{passive:true});addEventListener('scroll',schedule,{passive:true});schedule();})();
 </script>
 
-<script src="assets/performance-v1/motion.js?v=20261013"></script>
+<script src="assets/performance-v1/motion.js?v=20261014b"></script>
 <script src="assets/performance-v1/loading.js?v=20261013"></script>
 </body>
 </html>
