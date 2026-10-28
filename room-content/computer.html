@@ -1,0 +1,1649 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>ZOU MENG — Desktop</title>
+
+<style>
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  font-family: Arial, Helvetica, sans-serif;
+  background: white;
+  color: #8d8d8d;
+}
+
+
+/* ============================================================
+   COLORS
+============================================================ */
+
+:root {
+
+  --white: #ffffff;
+
+  --gray-1: #f6f6f6;
+  --gray-2: #ececec;
+  --gray-3: #d2d2d2;
+  --gray-4: #b5b5b5;
+  --gray-5: #8c8c8c;
+
+  /* clean pink */
+  --pink-1: #fff4fc;
+  --pink-2: #ffe5f7;
+  --pink-3: #ffcceb;
+  --pink-4: #f5a8d8;
+  --pink-5: #ee82c8;
+
+  --ease: cubic-bezier(.76,0,.24,1);
+}
+
+
+/* ============================================================
+   GLOBAL UI
+   永远在电脑外面
+============================================================ */
+
+.global-ui {
+
+  position: fixed;
+
+  top: 26px;
+  right: 34px;
+
+  z-index: 100;
+
+  display: flex;
+  align-items: center;
+
+  gap: 25px;
+
+  font-size: 10px;
+}
+
+
+.global-ui button {
+
+  border: none;
+  background: none;
+
+  color: var(--gray-4);
+
+  cursor: pointer;
+
+  font-size: 10px;
+
+  transition: color .2s ease;
+}
+
+
+.global-ui button:hover {
+  color: var(--pink-5);
+}
+
+
+.languages {
+
+  display: flex;
+
+  gap: 9px;
+}
+
+
+.languages button.active {
+
+  color: var(--pink-5);
+
+  border-bottom: 1px solid var(--pink-4);
+}
+
+
+
+/* ============================================================
+   FAKE MAIN 3D PAGE
+
+   这里只是暂时代替真正 Three.js Room
+============================================================ */
+
+.home {
+
+  position: fixed;
+
+  inset: 0;
+
+  background: white;
+
+  transition:
+    filter .7s var(--ease),
+    transform .8s var(--ease),
+    opacity .5s ease;
+}
+
+
+.fake-room {
+
+  position: absolute;
+
+  width: 630px;
+  height: 420px;
+
+  left: 50%;
+  top: 50%;
+
+  transform: translate(-50%,-50%);
+
+}
+
+
+/* room floor */
+
+.fake-floor {
+
+  position: absolute;
+
+  width: 540px;
+  height: 280px;
+
+  left: 50px;
+  top: 100px;
+
+  transform:
+    rotateX(55deg)
+    rotateZ(-3deg);
+
+  background: #eeeeee;
+
+}
+
+
+/* wall */
+
+.fake-wall {
+
+  position: absolute;
+
+  width: 470px;
+  height: 230px;
+
+  left: 75px;
+  top: 30px;
+
+  background: #f3f3f3;
+
+}
+
+
+/* desk */
+
+.fake-desk {
+
+  position: absolute;
+
+  width: 340px;
+  height: 20px;
+
+  left: 135px;
+  top: 230px;
+
+  background: #cfcfcf;
+
+}
+
+
+/* small mac */
+
+.fake-mac {
+
+  position: absolute;
+
+  width: 110px;
+  height: 72px;
+
+  left: 225px;
+  top: 150px;
+
+  border: 7px solid #d2d2d2;
+
+  background: #bcbcbc;
+
+  cursor: pointer;
+
+  transition:
+    transform .25s ease;
+}
+
+
+.fake-mac:hover {
+
+  transform: scale(1.035);
+
+}
+
+
+.fake-mac::after {
+
+  content: "";
+
+  position: absolute;
+
+  width: 22px;
+  height: 35px;
+
+  background: #d2d2d2;
+
+  left: 37px;
+  bottom: -35px;
+
+}
+
+
+/* background blur */
+
+body.desktop-open .home {
+
+  filter: blur(15px);
+
+  transform: scale(1.025);
+
+  opacity: .55;
+
+}
+
+
+
+/* ============================================================
+   CLICK OUTSIDE AREA
+============================================================ */
+
+.background-click {
+
+  position: fixed;
+
+  inset: 0;
+
+  z-index: 10;
+
+  pointer-events: none;
+
+  background:
+    rgba(255,255,255,.1);
+
+}
+
+
+body.desktop-open .background-click {
+
+  pointer-events: auto;
+
+}
+
+
+
+/* ============================================================
+   COMPUTER SCREEN
+============================================================ */
+
+.computer-screen {
+
+  position: fixed;
+
+  left: 50%;
+  top: 50%;
+
+  width: min(1000px, 72vw);
+  aspect-ratio: 16 / 10;
+
+  z-index: 20;
+
+  transform:
+    translate(-50%,-50%)
+    scale(.12);
+
+  opacity: 0;
+
+  pointer-events: none;
+
+  overflow: hidden;
+
+  border: 1px solid var(--gray-3);
+
+  background: white;
+
+  box-shadow:
+    0 25px 65px rgba(0,0,0,.07);
+
+  transition:
+
+    transform .95s var(--ease),
+
+    opacity .25s ease;
+}
+
+
+body.desktop-open .computer-screen {
+
+  opacity: 1;
+
+  pointer-events: auto;
+
+  transform:
+    translate(-50%,-50%)
+    scale(1);
+
+}
+
+
+
+/* ============================================================
+   DESKTOP WALLPAPER
+
+   临时 CSS wallpaper
+   后面换真正生成的小花图片
+============================================================ */
+
+.desktop {
+
+  position: absolute;
+
+  inset: 0;
+
+  overflow: hidden;
+
+  background:
+
+    linear-gradient(
+      180deg,
+      #fff9fd 0%,
+      #fff7fc 40%,
+      #f4f5f1 64%,
+      #e6ece3 100%
+    );
+
+}
+
+
+/* distant hill */
+
+.hill-back {
+
+  position: absolute;
+
+  width: 120%;
+  height: 48%;
+
+  left: -10%;
+  bottom: -18%;
+
+  border-radius: 50% 50% 0 0;
+
+  background: #edf2e9;
+
+  transform: rotate(-2deg);
+
+}
+
+
+/* closer hill */
+
+.hill-front {
+
+  position: absolute;
+
+  width: 100%;
+  height: 32%;
+
+  right: -25%;
+  bottom: -11%;
+
+  border-radius: 50% 50% 0 0;
+
+  background: #dfe9db;
+
+}
+
+
+/* tiny flower groups */
+
+.flower {
+
+  position: absolute;
+
+  width: 6px;
+  height: 6px;
+
+  background: var(--pink-4);
+
+  border-radius: 50%;
+
+  box-shadow:
+
+    7px 2px 0 var(--pink-3),
+
+    -5px 4px 0 var(--pink-2),
+
+    3px -6px 0 var(--pink-3),
+
+    11px -4px 0 var(--pink-2);
+
+}
+
+
+.f1 {
+  left: 18%;
+  bottom: 17%;
+}
+
+.f2 {
+  left: 34%;
+  bottom: 11%;
+  transform: scale(.7);
+}
+
+.f3 {
+  right: 22%;
+  bottom: 19%;
+  transform: scale(.85);
+}
+
+.f4 {
+  right: 9%;
+  bottom: 10%;
+  transform: scale(.55);
+}
+
+
+
+/* slight soft digital look */
+
+.desktop-noise {
+
+  position: absolute;
+
+  inset: 0;
+
+  pointer-events: none;
+
+  opacity: .055;
+
+  background-image:
+
+    repeating-linear-gradient(
+
+      0deg,
+
+      rgba(180,180,180,.4),
+
+      rgba(180,180,180,.4) 1px,
+
+      transparent 1px,
+
+      transparent 3px
+
+    );
+
+}
+
+
+
+/* ============================================================
+   REAL DESKTOP ICON LAYOUT
+
+   Windows-like:
+   left top → vertical
+============================================================ */
+
+.desktop-icons {
+
+  position: absolute;
+
+  left: 24px;
+  top: 23px;
+
+  z-index: 5;
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 12px;
+
+}
+
+
+.desktop-item {
+
+  width: 76px;
+  height: 82px;
+
+  padding: 5px 3px;
+
+  border: 1px solid transparent;
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+
+  cursor: pointer;
+
+  user-select: none;
+
+}
+
+
+.desktop-item:hover {
+
+  background:
+    rgba(255,255,255,.25);
+
+}
+
+
+.desktop-item.selected {
+
+  background:
+    rgba(255,255,255,.48);
+
+  border-color:
+    rgba(255,255,255,.8);
+
+}
+
+
+
+/* ============================================================
+   ICON
+============================================================ */
+
+.desktop-icon {
+
+  width: 42px;
+  height: 42px;
+
+  margin-bottom: 6px;
+
+}
+
+
+.desktop-icon svg {
+
+  width: 100%;
+  height: 100%;
+
+  display: block;
+
+}
+
+
+.desktop-name {
+
+  width: 72px;
+
+  text-align: center;
+
+  color: #858585;
+
+  font-size: 9px;
+
+  line-height: 1.2;
+
+  text-shadow:
+    0 1px 0 white;
+
+}
+
+
+
+/* ============================================================
+   ABOUT ICON
+============================================================ */
+
+.about-file-body {
+
+  fill: white;
+
+  stroke: #a9a9a9;
+
+  stroke-width: 1;
+}
+
+
+.about-file-top {
+
+  fill: var(--pink-2);
+
+  stroke: #a9a9a9;
+
+  stroke-width: 1;
+}
+
+
+.icon-pink {
+
+  fill: var(--pink-4);
+
+}
+
+
+.icon-line {
+
+  stroke: #a9a9a9;
+
+  stroke-width: 1;
+}
+
+
+
+/* ============================================================
+   WINDOW SYSTEM
+============================================================ */
+
+.window {
+
+  position: absolute;
+
+  left: 50%;
+  top: 50%;
+
+  z-index: 30;
+
+  background: white;
+
+  border: 1px solid var(--gray-3);
+
+  opacity: 0;
+
+  pointer-events: none;
+
+  transform:
+    translate(-50%,-47%)
+    scale(.96);
+
+  transition:
+
+    opacity .2s ease,
+
+    transform .32s var(--ease);
+
+}
+
+
+.window.active {
+
+  opacity: 1;
+
+  pointer-events: auto;
+
+  transform:
+    translate(-50%,-50%)
+    scale(1);
+
+}
+
+
+
+/* ============================================================
+   TITLE BAR
+============================================================ */
+
+.window-top {
+
+  height: 33px;
+
+  display: flex;
+
+  justify-content: space-between;
+
+  align-items: center;
+
+  padding-left: 12px;
+
+  background: #fafafa;
+
+  border-bottom:
+    1px solid var(--gray-3);
+
+}
+
+
+.window-title {
+
+  font-size: 9px;
+
+  color: var(--gray-5);
+
+}
+
+
+.close-window {
+
+  width: 36px;
+  height: 32px;
+
+  border: none;
+
+  border-left:
+    1px solid var(--gray-3);
+
+  background: transparent;
+
+  cursor: pointer;
+
+  color: var(--gray-4);
+
+  font-size: 17px;
+
+}
+
+
+.close-window:hover {
+
+  color: var(--pink-5);
+
+  background: var(--pink-1);
+
+}
+
+
+
+/* ============================================================
+   ABOUT WINDOW
+============================================================ */
+
+.about-window {
+
+  width: 64%;
+  height: 62%;
+
+}
+
+
+.about-content {
+
+  height:
+    calc(100% - 33px);
+
+  padding: 42px;
+
+  display: grid;
+
+  grid-template-columns:
+    180px 1fr;
+
+  gap: 50px;
+
+}
+
+
+.about-name {
+
+  color: var(--pink-5);
+
+  font-size: 29px;
+
+  line-height: .95;
+
+  letter-spacing: -.045em;
+
+  font-weight: 500;
+
+  margin-bottom: 28px;
+
+}
+
+
+.about-meta {
+
+  font-size: 9px;
+
+  line-height: 1.7;
+
+  color: var(--gray-4);
+
+}
+
+
+.about-text {
+
+  max-width: 430px;
+
+  font-size: 14px;
+
+  line-height: 1.55;
+
+  color: var(--gray-5);
+
+}
+
+
+.about-text + .about-text {
+
+  margin-top: 20px;
+
+}
+
+
+
+/* ============================================================
+   WEBSITE WINDOW
+============================================================ */
+
+.website-window {
+
+  width: 92%;
+  height: 90%;
+
+}
+
+
+.website-frame {
+
+  width: 100%;
+  height: calc(100% - 33px);
+
+  border: none;
+
+  display: block;
+
+  background: white;
+
+}
+
+
+
+/* ============================================================
+   SUU PLACEHOLDER
+============================================================ */
+
+.suu-placeholder {
+
+  height: calc(100% - 33px);
+
+  display: flex;
+
+  justify-content: center;
+
+  align-items: center;
+
+  background: white;
+
+}
+
+
+.suu-box {
+
+  width: 330px;
+
+  padding: 45px;
+
+  border:
+    1px solid var(--gray-3);
+
+  text-align: center;
+
+}
+
+
+.suu-title {
+
+  color: var(--pink-5);
+
+  font-size: 30px;
+
+  margin-bottom: 12px;
+
+}
+
+
+.suu-text {
+
+  color: var(--gray-4);
+
+  font-size: 10px;
+
+}
+
+
+
+/* ============================================================
+   MOBILE
+============================================================ */
+
+@media (max-width: 700px) {
+
+  .computer-screen {
+
+    width: calc(100vw - 26px);
+
+  }
+
+  .global-ui {
+
+    top: 15px;
+    right: 17px;
+
+  }
+
+  .about-window {
+
+    width: 84%;
+    height: 70%;
+
+  }
+
+  .about-content {
+
+    padding: 27px;
+
+    grid-template-columns: 1fr;
+
+    gap: 25px;
+
+    overflow-y: auto;
+
+  }
+
+}
+
+</style>
+</head>
+
+
+
+<body>
+
+
+<!-- ==========================================================
+     GLOBAL
+=========================================================== -->
+
+<div class="global-ui">
+
+  <button onclick="closeDesktop()">
+    HOME
+  </button>
+
+
+  <div class="languages">
+
+    <button
+      class="active"
+      data-lang="en"
+      onclick="setLanguage('en')"
+    >
+      EN
+    </button>
+
+    <button
+      data-lang="jp"
+      onclick="setLanguage('jp')"
+    >
+      JP
+    </button>
+
+    <button
+      data-lang="cn"
+      onclick="setLanguage('cn')"
+    >
+      CN
+    </button>
+
+  </div>
+
+</div>
+
+
+
+<!-- ==========================================================
+     FAKE 3D HOME
+=========================================================== -->
+
+<main class="home">
+
+  <div class="fake-room">
+
+    <div class="fake-wall"></div>
+
+    <div class="fake-floor"></div>
+
+    <div class="fake-desk"></div>
+
+
+    <button
+      class="fake-mac"
+      onclick="openDesktop()"
+    ></button>
+
+  </div>
+
+</main>
+
+
+
+<!-- blurred area click -->
+
+<div
+  class="background-click"
+  onclick="closeDesktop()"
+></div>
+
+
+
+<!-- ==========================================================
+     COMPUTER SCREEN
+=========================================================== -->
+
+<section class="computer-screen">
+
+
+  <!-- DESKTOP -->
+
+  <div
+    class="desktop"
+    id="desktop"
+    onclick="clearSelection(event)"
+  >
+
+
+    <div class="hill-back"></div>
+
+    <div class="hill-front"></div>
+
+
+    <div class="flower f1"></div>
+    <div class="flower f2"></div>
+    <div class="flower f3"></div>
+    <div class="flower f4"></div>
+
+    <div class="desktop-noise"></div>
+
+
+
+    <!-- ======================================================
+         ICONS
+    ======================================================= -->
+
+    <div class="desktop-icons">
+
+
+      <!-- ABOUT -->
+
+      <div
+        class="desktop-item"
+        onclick="selectItem(event,this)"
+        ondblclick="openWindow(event,'aboutWindow')"
+      >
+
+        <div class="desktop-icon">
+
+          <svg viewBox="0 0 48 48">
+
+            <rect
+              x="8"
+              y="6"
+              width="32"
+              height="36"
+              class="about-file-body"
+            />
+
+            <rect
+              x="8"
+              y="6"
+              width="32"
+              height="7"
+              class="about-file-top"
+            />
+
+            <circle
+              cx="18"
+              cy="23"
+              r="4"
+              class="icon-pink"
+            />
+
+            <path
+              d="M13 34
+                 C14 29,
+                   16 27,
+                   18 27
+                 C20 27,
+                   22 29,
+                   23 34"
+              fill="none"
+              class="icon-line"
+            />
+
+            <line
+              x1="27"
+              y1="22"
+              x2="35"
+              y2="22"
+              class="icon-line"
+            />
+
+            <line
+              x1="27"
+              y1="27"
+              x2="35"
+              y2="27"
+              class="icon-line"
+            />
+
+            <line
+              x1="27"
+              y1="32"
+              x2="34"
+              y2="32"
+              class="icon-line"
+            />
+
+          </svg>
+
+        </div>
+
+
+        <div class="desktop-name">
+          ABOUT ME
+        </div>
+
+      </div>
+
+
+
+      <!-- AOTA -->
+
+      <div
+        class="desktop-item"
+        onclick="selectItem(event,this)"
+        ondblclick="openWindow(event,'aotaWindow')"
+      >
+
+        <div class="desktop-icon">
+
+          <svg viewBox="0 0 48 48">
+
+            <rect
+              x="6"
+              y="8"
+              width="36"
+              height="31"
+              fill="white"
+              stroke="#aaa"
+            />
+
+            <rect
+              x="6"
+              y="8"
+              width="36"
+              height="7"
+              fill="#eeeeee"
+              stroke="#aaa"
+            />
+
+            <circle
+              cx="11"
+              cy="11.5"
+              r="1.2"
+              fill="#f5a8d8"
+            />
+
+            <circle
+              cx="15"
+              cy="11.5"
+              r="1.2"
+              fill="#c8c8c8"
+            />
+
+            <circle
+              cx="19"
+              cy="11.5"
+              r="1.2"
+              fill="#c8c8c8"
+            />
+
+
+            <circle
+              cx="24"
+              cy="27"
+              r="7"
+              fill="#ffe5f7"
+              stroke="#aaa"
+            />
+
+            <circle
+              cx="24"
+              cy="27"
+              r="3"
+              fill="white"
+              stroke="#aaa"
+            />
+
+          </svg>
+
+        </div>
+
+
+        <div class="desktop-name">
+          AOTA
+        </div>
+
+      </div>
+
+
+
+      <!-- SUU -->
+
+      <div
+        class="desktop-item"
+        onclick="selectItem(event,this)"
+        ondblclick="openWindow(event,'suuWindow')"
+      >
+
+        <div class="desktop-icon">
+
+          <svg viewBox="0 0 48 48">
+
+            <rect
+              x="6"
+              y="8"
+              width="36"
+              height="31"
+              fill="white"
+              stroke="#aaa"
+            />
+
+            <rect
+              x="6"
+              y="8"
+              width="36"
+              height="7"
+              fill="#fff4fc"
+              stroke="#aaa"
+            />
+
+            <circle
+              cx="11"
+              cy="11.5"
+              r="1.2"
+              fill="#f5a8d8"
+            />
+
+            <circle
+              cx="15"
+              cy="11.5"
+              r="1.2"
+              fill="#c8c8c8"
+            />
+
+            <circle
+              cx="19"
+              cy="11.5"
+              r="1.2"
+              fill="#c8c8c8"
+            />
+
+
+            <path
+              d="
+                M24 18
+                C28 23 31 27 31 31
+                C31 35 28 38 24 38
+                C20 38 17 35 17 31
+                C17 27 20 23 24 18
+              "
+              fill="#ffe5f7"
+              stroke="#aaa"
+            />
+
+          </svg>
+
+        </div>
+
+
+        <div class="desktop-name">
+          SUU
+        </div>
+
+      </div>
+
+
+    </div>
+
+
+
+    <!-- ======================================================
+         ABOUT WINDOW
+    ======================================================= -->
+
+    <section
+      class="window about-window"
+      id="aboutWindow"
+    >
+
+      <div class="window-top">
+
+        <span class="window-title">
+          About Me
+        </span>
+
+        <button
+          class="close-window"
+          onclick="closeWindow(event,'aboutWindow')"
+        >
+          ×
+        </button>
+
+      </div>
+
+
+      <div class="about-content">
+
+        <div>
+
+          <div class="about-name">
+            ZOU<br>
+            MENG
+          </div>
+
+
+          <div class="about-meta">
+
+            VISUAL DESIGNER<br>
+            TOKYO<br><br>
+
+            CN / JP / EN
+
+          </div>
+
+        </div>
+
+
+        <div>
+
+          <p class="about-text">
+            Visual designer working across
+            graphic design, branding,
+            editorial design and digital
+            experiences.
+          </p>
+
+
+          <p class="about-text">
+            Interested in connecting visual
+            identity with interaction,
+            space and web experiences.
+          </p>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+
+    <!-- ======================================================
+         AOTA
+    ======================================================= -->
+
+    <section
+      class="window website-window"
+      id="aotaWindow"
+    >
+
+      <div class="window-top">
+
+        <span class="window-title">
+          AOTA
+        </span>
+
+        <button
+          class="close-window"
+          onclick="closeWindow(event,'aotaWindow')"
+        >
+          ×
+        </button>
+
+      </div>
+
+
+      <iframe
+        class="website-frame"
+        src="./index.html"
+        title="AOTA"
+      ></iframe>
+
+    </section>
+
+
+
+    <!-- ======================================================
+         SUU
+    ======================================================= -->
+
+    <section
+      class="window website-window"
+      id="suuWindow"
+    >
+
+      <div class="window-top">
+
+        <span class="window-title">
+          SUU
+        </span>
+
+        <button
+          class="close-window"
+          onclick="closeWindow(event,'suuWindow')"
+        >
+          ×
+        </button>
+
+      </div>
+
+
+      <div class="suu-placeholder">
+
+        <div class="suu-box">
+
+          <div class="suu-title">
+            SUU
+          </div>
+
+          <div class="suu-text">
+            WEBSITE WILL BE CONNECTED HERE
+          </div>
+
+        </div>
+
+      </div>
+
+    </section>
+
+
+  </div>
+
+</section>
+
+
+
+<script>
+
+/* ============================================================
+   DESKTOP
+============================================================ */
+
+function openDesktop() {
+
+  document.body.classList.add(
+    "desktop-open"
+  );
+
+}
+
+
+function closeDesktop() {
+
+  closeAllWindows();
+
+  clearItems();
+
+  document.body.classList.remove(
+    "desktop-open"
+  );
+
+}
+
+
+
+/* ============================================================
+   ICON SELECTION
+============================================================ */
+
+function selectItem(
+  event,
+  item
+) {
+
+  event.stopPropagation();
+
+  clearItems();
+
+  item.classList.add(
+    "selected"
+  );
+
+}
+
+
+function clearItems() {
+
+  document
+    .querySelectorAll(
+      ".desktop-item"
+    )
+    .forEach(item => {
+
+      item.classList.remove(
+        "selected"
+      );
+
+    });
+
+}
+
+
+function clearSelection(event) {
+
+  if (
+    event.target.id === "desktop"
+  ) {
+
+    clearItems();
+
+  }
+
+}
+
+
+
+/* ============================================================
+   WINDOWS
+============================================================ */
+
+function openWindow(
+  event,
+  id
+) {
+
+  event.stopPropagation();
+
+  closeAllWindows();
+
+  document
+    .getElementById(id)
+    .classList.add(
+      "active"
+    );
+
+}
+
+
+function closeWindow(
+  event,
+  id
+) {
+
+  event.stopPropagation();
+
+  document
+    .getElementById(id)
+    .classList.remove(
+      "active"
+    );
+
+}
+
+
+function closeAllWindows() {
+
+  document
+    .querySelectorAll(
+      ".window"
+    )
+    .forEach(windowElement => {
+
+      windowElement
+        .classList
+        .remove(
+          "active"
+        );
+
+    });
+
+}
+
+
+
+/* ============================================================
+   LANGUAGE
+============================================================ */
+
+function setLanguage(
+  language
+) {
+
+  document
+    .querySelectorAll(
+      ".languages button"
+    )
+    .forEach(button => {
+
+      button.classList.toggle(
+        "active",
+        button.dataset.lang === language
+      );
+
+    });
+
+}
+
+</script>
+
+<script src="/Portfolio/room-content/device-bridge.js"></script><script src="/Portfolio/room-content/computer-embed.js"></script></body>
+</html>

@@ -1,0 +1,816 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head><base href="/Portfolio/"><script src="/Portfolio/room-content/device-bridge.js"></script><script src="/Portfolio/room-content/prototype-ja.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>採れたて - toretateI</title>
+    <script src="/Portfolio/room-content/tailwind-runtime.js"></script>
+
+    <link href="/Portfolio/room-content/webfonts/mplus-rounded.css" rel="stylesheet">
+    <link rel="stylesheet" href="/Portfolio/room-content/fontawesome.css">
+
+    <style>
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+        .kerning-jp { font-feature-settings: "palt"; }
+
+        #video-container {
+            transition: height 0.25s ease-out;
+        }
+    </style>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: { 
+                        sans: ['"M PLUS Rounded 1c"', 'sans-serif'],
+                    },
+                    colors: {
+                        theme: {
+                            main: '#97D264',
+                            dark: '#558B2F',
+                            bg: '#FFFFFF',
+                            bar: '#FFFFFF',
+                            card: '#FFFFFF',
+                            text: '#2C3E2D',
+                            muted: '#999999'
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-white flex items-center justify-center min-h-screen font-sans font-normal">
+
+    <div class="w-[390px] h-[844px] bg-theme-bg rounded-[45px] relative overflow-hidden flex flex-col border-[8px] border-gray-900">
+
+        <div class="w-full h-[47px] bg-theme-bg flex items-center justify-between px-7 pt-3 text-[14px] font-medium text-gray-800 z-30 relative shrink-0">
+            <span>9:41</span>
+            <div class="flex items-center gap-1.5">
+                <i class="fa-solid fa-signal text-[11px]"></i>
+                <i class="fa-solid fa-wifi text-[11px]"></i>
+                <i class="fa-solid fa-battery-full text-[14px]"></i>
+            </div>
+        </div>
+
+
+        <div id="page-splash" class="page-container flex-1 flex flex-col items-center justify-start pt-[240px] relative bg-white z-50 cursor-pointer" onclick="switchPage('home')">
+            <div class="w-[180px] h-[180px] flex items-center justify-center">
+                <img src="assets/web/assets/images/image-0014.webp" alt="Logo" class="max-w-full max-h-full object-contain">
+            </div>
+        </div>
+
+
+        <div id="page-home" class="page-container flex-1 flex-col overflow-hidden relative hidden">
+            <main class="flex-1 overflow-y-auto no-scrollbar pb-28 bg-theme-bg">
+                <div class="px-5 pt-1 pb-2 flex items-center justify-between">
+                    <div class="flex items-center gap-1 text-[13px] font-normal text-theme-text cursor-pointer hover:opacity-70 transition-opacity">
+                        <i class="fa-solid fa-location-dot text-theme-muted text-[13px]"></i>
+                        <span>東京都豊島区</span>
+                    </div>
+                </div>
+
+                <div class="px-5 relative">
+                    <div id="banner-carousel" class="w-full h-[140px] bg-white rounded-[16px] overflow-hidden shadow-[0_2px_8px_rgba(0,0,0,0.02)] border border-gray-200/80 relative group">
+                        <div class="banner-slide absolute inset-0 transition-opacity duration-700 opacity-100">
+                            <img src="assets/web/assets/images/image-0015.webp" alt="Banner 1" class="w-full h-full object-cover">
+                        </div>
+                        <div class="banner-slide absolute inset-0 transition-opacity duration-700 opacity-0">
+                            <img src="assets/web/assets/images/image-0016.webp" alt="Banner 2" class="w-full h-full object-cover">
+                        </div>
+                        <div class="banner-slide absolute inset-0 transition-opacity duration-700 opacity-0">
+                            <img src="assets/web/assets/images/image-0017.webp" alt="Banner 3" class="w-full h-full object-cover">
+                        </div>
+
+                        <div class="absolute bottom-2.5 right-3 flex gap-1.5 z-10">
+                            <span class="dot w-1.5 h-1.5 rounded-full bg-white shadow-sm transition-all duration-300 opacity-100"></span>
+                            <span class="dot w-1.5 h-1.5 rounded-full bg-white shadow-sm transition-all duration-300 opacity-50"></span>
+                            <span class="dot w-1.5 h-1.5 rounded-full bg-white shadow-sm transition-all duration-300 opacity-50"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="px-5 mt-4" onclick="switchPage('category', '野菜')">
+                    <div class="w-full h-[38px] bg-transparent border border-gray-200/80 rounded-xl px-4 flex items-center gap-2 cursor-pointer hover:border-theme-main transition-colors">
+                    </div>
+                </div>
+
+                <div class="mt-4">
+                    <div class="flex gap-[12px] overflow-x-auto px-5 pb-2 no-scrollbar snap-x">
+                        <div id="auto-category-trigger" class="snap-start flex-shrink-0 flex flex-col items-center gap-1 cursor-pointer group w-[65px]" onclick="switchPage('category', '野菜')">
+                            <div class="w-[48px] h-[48px] flex items-center justify-center relative">
+                                <img src="assets/web/assets/images/image-0018.webp" alt="野菜" class="w-full h-full object-contain scale-[0.85] group-hover:scale-[1.02] transition-transform duration-300">
+                            </div>
+                            <span class="text-[11px] font-normal text-theme-text mt-0.5">野菜</span>
+                        </div>
+                        <div class="snap-start flex-shrink-0 flex flex-col items-center gap-1 cursor-pointer group w-[65px]" onclick="switchPage('category', '果物')">
+                            <div class="w-[48px] h-[48px] flex items-center justify-center relative">
+                                <img src="assets/images/image-0019.png" alt="果物" class="w-full h-full object-contain scale-[0.85] group-hover:scale-[1.02] transition-transform duration-300">
+                            </div>
+                            <span class="text-[11px] font-normal text-theme-text mt-0.5">果物</span>
+                        </div>
+                        <div class="snap-start flex-shrink-0 flex flex-col items-center gap-1 cursor-pointer group w-[65px]" onclick="switchPage('category', '肉')">
+                            <div class="w-[48px] h-[48px] flex items-center justify-center relative">
+                                <img src="assets/web/assets/images/image-0020.webp" alt="肉" class="w-full h-full object-contain scale-[0.85] group-hover:scale-[1.02] transition-transform duration-300">
+                            </div>
+                            <span class="text-[11px] font-normal text-theme-text mt-0.5">肉</span>
+                        </div>
+                        <div class="snap-start flex-shrink-0 flex flex-col items-center gap-1 cursor-pointer group w-[65px]" onclick="switchPage('category', '卵')">
+                            <div class="w-[48px] h-[48px] flex items-center justify-center relative">
+                                <img src="assets/web/assets/images/image-0021.webp" alt="卵" class="w-full h-full object-contain scale-[0.85] group-hover:scale-[1.02] transition-transform duration-300">
+                            </div>
+                            <span class="text-[11px] font-normal text-theme-text mt-0.5">卵</span>
+                        </div>
+                        <div class="snap-start flex-shrink-0 flex flex-col items-center gap-1 cursor-pointer group w-[65px]" onclick="switchPage('category', '魚')">
+                            <div class="w-[48px] h-[48px] flex items-center justify-center relative">
+                                <img src="assets/web/assets/images/image-0022.webp" alt="魚" class="w-full h-full object-contain scale-[0.85] group-hover:scale-[1.02] transition-transform duration-300">
+                            </div>
+                            <span class="text-[11px] font-normal text-theme-text mt-0.5">魚</span>
+                        </div>
+                        <div class="snap-start flex-shrink-0 flex flex-col items-center gap-1 cursor-pointer group w-[65px]" onclick="switchPage('category', '乳製品')">
+                            <div class="w-[48px] h-[48px] flex items-center justify-center relative">
+                                <img src="assets/web/assets/images/image-0023.webp" alt="乳製品" class="w-full h-full object-contain scale-[0.85] group-hover:scale-[1.02] transition-transform duration-300">
+                            </div>
+                            <span class="text-[11px] font-normal text-theme-text mt-0.5">乳製品</span>
+                        </div>
+                        <div class="snap-start flex-shrink-0 flex flex-col items-center gap-1 cursor-pointer group w-[65px]" onclick="switchPage('category', 'きのこ')">
+                            <div class="w-[48px] h-[48px] flex items-center justify-center relative">
+                                <img src="assets/web/assets/images/image-0024.webp" alt="きのこ" class="w-full h-full object-contain scale-[0.85] group-hover:scale-[1.02] transition-transform duration-300">
+                            </div>
+                            <span class="text-[11px] font-normal text-theme-text mt-0.5">きのこ</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="px-5 mt-5">
+                    <div class="flex justify-between items-end mb-3">
+                        <h2 class="text-[16px] font-bold text-theme-main tracking-wide">産地直送の恵み</h2>
+                    </div>
+
+                    <div class="grid grid-cols-2 gap-[14px]">
+                        <div class="bg-white rounded-[16px] p-2.5 shadow-[0_2px_8px_rgba(0,0,0,0.02)] border border-gray-200/80 relative cursor-pointer group flex flex-col justify-between" onclick="openDetail('ズッキーニ', '¥380', '長野県産', 'イタリアン', '冷暗所', 'assets/images/image-0025.jpg', '/1本 (約200g)')">
+                            <div>
+                                <div class="w-full aspect-[7/5] rounded-[10px] overflow-hidden relative bg-white flex items-center justify-center p-2 mb-2">
+                                    <img src="assets/images/image-0025.jpg" alt="ズッキーニ" class="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform duration-300">
+                                </div>
+                                <div class="absolute top-2.5 left-2.5 bg-white/95 backdrop-blur px-1.5 py-0.5 rounded-[4px] text-[8px] font-normal text-theme-dark border border-gray-200 shadow-sm">長野県産</div>
+                                <div class="flex items-center justify-between pt-1">
+                                    <div class="flex flex-col">
+                                        <h3 class="text-[14px] font-medium text-theme-text tracking-tight leading-snug">ズッキーニ</h3>
+                                        <div class="flex items-baseline gap-1 mt-1">
+                                            <span class="text-[12px] font-normal text-theme-muted">¥380</span>
+                                            <span class="text-[9px] font-normal text-theme-muted">/1本 (約200g)</span>
+                                        </div>
+                                    </div>
+                                    <div class="w-[22px] h-[22px] bg-theme-main rounded-full flex items-center justify-center shrink-0 shadow-sm hover:opacity-90 active:scale-95 transition-all" onclick="event.stopPropagation(); addToCart('ズッキーニ', 380, '長野県産', '/1本 (約200g)', 'assets/images/image-0025.jpg');">
+                                        <i class="fa-solid fa-plus text-white text-[10px]"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-[16px] p-2.5 shadow-[0_2px_8px_rgba(0,0,0,0.02)] border border-gray-200/80 relative cursor-pointer group flex flex-col justify-between" onclick="openDetail('小松菜', '¥280', '埼玉県産', '江戸菜', '冷蔵', 'assets/images/image-0026.jpg', '/1袋 (約200g)')">
+                            <div>
+                                <div class="w-full aspect-[7/5] rounded-[10px] overflow-hidden relative bg-white flex items-center justify-center p-2 mb-2">
+                                    <img src="assets/images/image-0026.jpg" alt="小松菜" class="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform duration-300">
+                                </div>
+                                <div class="absolute top-2.5 left-2.5 bg-white/95 backdrop-blur px-1.5 py-0.5 rounded-[4px] text-[8px] font-normal text-theme-dark border border-gray-200 shadow-sm">埼玉県産</div>
+                                <div class="flex items-center justify-between pt-1">
+                                    <div class="flex flex-col">
+                                        <h3 class="text-[14px] font-medium text-theme-text tracking-tight leading-snug">小松菜</h3>
+                                        <div class="flex items-baseline gap-1 mt-1">
+                                            <span class="text-[12px] font-normal text-theme-muted">¥280</span>
+                                            <span class="text-[9px] font-normal text-theme-muted">/1袋 (約200g)</span>
+                                        </div>
+                                    </div>
+                                    <div class="w-[22px] h-[22px] bg-theme-main rounded-full flex items-center justify-center shrink-0 shadow-sm hover:opacity-90 active:scale-95 transition-all" onclick="event.stopPropagation(); addToCart('小松菜', 280, '埼玉県産', '/1袋 (約200g)', 'assets/images/image-0026.jpg');">
+                                        <i class="fa-solid fa-plus text-white text-[10px]"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-[16px] p-2.5 shadow-[0_2px_8px_rgba(0,0,0,0.02)] border border-gray-200/80 relative cursor-pointer group flex flex-col justify-between" onclick="openDetail('ブロッコリー', '¥420', '群馬県産', '緑の宝石', '冷蔵', 'assets/images/image-0027.jpg', '/1株 (約300g)')">
+                            <div>
+                                <div class="w-full aspect-[7/5] rounded-[10px] overflow-hidden relative bg-white flex items-center justify-center p-2 mb-2">
+                                    <img src="assets/images/image-0027.jpg" alt="ブロッコリー" class="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform duration-300">
+                                </div>
+                                <div class="absolute top-2.5 left-2.5 bg-white/95 backdrop-blur px-1.5 py-0.5 rounded-[4px] text-[8px] font-normal text-theme-dark border border-gray-200 shadow-sm">群馬県産</div>
+                                <div class="flex items-center justify-between pt-1">
+                                    <div class="flex flex-col">
+                                        <h3 class="text-[14px] font-medium text-theme-text tracking-tight leading-snug">ブロッコリー</h3>
+                                        <div class="flex items-baseline gap-1 mt-1">
+                                            <span class="text-[12px] font-normal text-theme-muted">¥420</span>
+                                            <span class="text-[9px] font-normal text-theme-muted">/1株 (約300g)</span>
+                                        </div>
+                                    </div>
+                                    <div class="w-[22px] h-[22px] bg-theme-main rounded-full flex items-center justify-center shrink-0 shadow-sm hover:opacity-90 active:scale-95 transition-all" onclick="event.stopPropagation(); addToCart('ブロッコリー', 420, '群馬県産', '/1株 (約300g)', 'assets/images/image-0027.jpg');">
+                                        <i class="fa-solid fa-plus text-white text-[10px]"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="bg-white rounded-[16px] p-2.5 shadow-[0_2px_8px_rgba(0,0,0,0.02)] border border-gray-200/80 relative cursor-pointer group flex flex-col justify-between" onclick="openDetail('白菜', '¥580', '茨城県産', '黄心白菜', '冷暗所', 'assets/images/image-0028.jpg', '/1玉 (約800g)')">
+                            <div>
+                                <div class="w-full aspect-[7/5] rounded-[10px] overflow-hidden relative bg-white flex items-center justify-center p-2 mb-2">
+                                    <img src="assets/images/image-0028.jpg" alt="白菜" class="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform duration-300">
+                                </div>
+                                <div class="absolute top-2.5 left-2.5 bg-white/95 backdrop-blur px-1.5 py-0.5 rounded-[4px] text-[8px] font-normal text-theme-dark border border-gray-200 shadow-sm">茨城県産</div>
+                                <div class="flex items-center justify-between pt-1">
+                                    <div class="flex flex-col">
+                                        <h3 class="text-[14px] font-medium text-theme-text tracking-tight leading-snug">白菜</h3>
+                                        <div class="flex items-baseline gap-1 mt-1">
+                                            <span class="text-[12px] font-normal text-theme-muted">¥580</span>
+                                            <span class="text-[9px] font-normal text-theme-muted">/1玉 (約800g)</span>
+                                        </div>
+                                    </div>
+                                    <div class="w-[22px] h-[22px] bg-theme-main rounded-full flex items-center justify-center shrink-0 shadow-sm hover:opacity-90 active:scale-95 transition-all" onclick="event.stopPropagation(); addToCart('白菜', 580, '茨城県産', '/1玉 (約800g)', 'assets/images/image-0028.jpg');">
+                                        <i class="fa-solid fa-plus text-white text-[10px]"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+
+        <div id="page-category" class="page-container flex-1 flex-col overflow-hidden relative hidden">
+            <header class="h-[52px] bg-white px-5 flex items-center justify-between border-b border-gray-100 z-10 shrink-0 relative">
+                <div class="w-7 h-7 flex items-center justify-center cursor-pointer text-theme-main hover:opacity-70 transition-opacity shrink-0" onclick="switchPage('home')">
+                    <i class="fa-solid fa-chevron-left text-[16px]"></i>
+                </div>
+                <h1 class="absolute left-1/2 -translate-x-1/2 text-[15px] font-bold text-theme-text tracking-wide">品目から探す</h1>
+                <div class="w-7 h-7 rounded-full border border-gray-300 flex items-center justify-center cursor-pointer text-gray-500 font-bold text-xs shrink-0">
+                    ?
+                </div>
+            </header>
+
+            <main class="flex-1 overflow-hidden flex bg-theme-bg relative">
+                <aside class="w-[92px] bg-[#FAFAFA] border-r border-gray-100 overflow-y-auto no-scrollbar flex flex-col py-3 shrink-0">
+                    <div class="category-item py-3 px-3 flex flex-col items-center gap-1.5 cursor-pointer border-l-4 border-transparent hover:bg-gray-100/50 transition-all" data-cat="野菜" onclick="selectCategoryItem(this)">
+                        <span class="text-[12px] font-normal text-theme-muted">野菜</span>
+                    </div>
+                    <div class="category-item py-3 px-3 flex flex-col items-center gap-1.5 cursor-pointer border-l-4 border-transparent hover:bg-gray-100/50 transition-all" data-cat="果物" onclick="selectCategoryItem(this)">
+                        <span class="text-[12px] font-normal text-theme-muted">果物</span>
+                    </div>
+                    <div class="category-item py-3 px-3 flex flex-col items-center gap-1.5 cursor-pointer border-l-4 border-transparent hover:bg-gray-100/50 transition-all" data-cat="肉" onclick="selectCategoryItem(this)">
+                        <span class="text-[12px] font-normal text-theme-muted">肉</span>
+                    </div>
+                    <div class="category-item py-3 px-3 flex flex-col items-center gap-1.5 cursor-pointer border-l-4 border-transparent hover:bg-gray-100/50 transition-all" data-cat="卵" onclick="selectCategoryItem(this)">
+                        <span class="text-[12px] font-normal text-theme-muted">卵</span>
+                    </div>
+                    <div class="category-item py-3 px-3 flex flex-col items-center gap-1.5 cursor-pointer border-l-4 border-transparent hover:bg-gray-100/50 transition-all" data-cat="魚" onclick="selectCategoryItem(this)">
+                        <span class="text-[12px] font-normal text-theme-muted">魚</span>
+                    </div>
+                    <div class="category-item py-3 px-3 flex flex-col items-center gap-1.5 cursor-pointer border-l-4 border-transparent hover:bg-gray-100/50 transition-all" data-cat="乳製品" onclick="selectCategoryItem(this)">
+                        <span class="text-[12px] font-normal text-theme-muted">乳製品</span>
+                    </div>
+                    <div class="category-item py-3 px-3 flex flex-col items-center gap-1.5 cursor-pointer border-l-4 border-transparent hover:bg-gray-100/50 transition-all" data-cat="きのこ" onclick="selectCategoryItem(this)">
+                        <span class="text-[12px] font-normal text-theme-muted">きのこ</span>
+                    </div>
+                </aside>
+
+                <div class="flex-1 overflow-y-auto no-scrollbar p-3 pb-28 bg-white">
+                    <div id="product-grid" class="grid grid-cols-2 gap-2.5">
+                        </div>
+                </div>
+            </main>
+        </div>
+
+
+        <div id="page-detail" class="page-container flex-1 flex-col overflow-hidden relative hidden bg-white z-50">
+            <div class="absolute top-3 left-0 w-full px-4 flex items-center justify-between z-20 pointer-events-none">
+                <div class="w-7 h-7 flex items-center justify-center cursor-pointer pointer-events-auto hover:opacity-75 transition-opacity shrink-0" onclick="goBackToPrevious()">
+                    <i class="fa-solid fa-chevron-left text-[16px] text-white drop-shadow-md"></i>
+                </div>
+                <div class="w-8 h-8 rounded-full border border-white/40 bg-black/30 backdrop-blur flex items-center justify-center cursor-pointer pointer-events-auto overflow-hidden shrink-0">
+                    <i class="fa-regular fa-heart text-sm text-white"></i>
+                </div>
+            </div>
+
+            <div class="flex-1 flex flex-col overflow-hidden relative">
+                <main id="detail-scroll-main" class="flex-1 overflow-y-auto no-scrollbar pb-48" onscroll="handleDetailScroll(this)">
+                    <div id="video-container" class="w-full h-[280px] bg-gray-900 relative shrink-0 overflow-hidden">
+                        <video id="detail-video" autoplay loop muted playsinline class="w-full h-full object-cover">
+                            <source src="assets/videos/video-0001.mp4" type="video/mp4">
+                        </video>
+                        <div id="play-btn-wrapper" class="absolute bottom-4 right-4 w-10 h-10 bg-black/50 backdrop-blur rounded-full flex items-center justify-center text-white cursor-pointer hover:scale-105 transition-transform" onclick="togglePlayVideo()">
+                            <i id="play-icon" class="fa-solid fa-pause text-xs"></i>
+                        </div>
+                    </div>
+
+                    <div class="px-5 pt-5">
+                        <div class="text-[20px] font-bold text-red-500 tracking-tight" id="detail-price">¥580<span class="text-[11px] font-normal text-theme-muted ml-1">起</span></div>
+                        <h1 class="text-[18px] font-bold text-theme-text mt-1.5 tracking-wide" id="detail-title">白菜</h1>
+                    </div>
+
+                    <div class="px-5 mt-5">
+                        <div class="w-full bg-theme-main rounded-[20px] py-3.5 px-4 flex justify-around text-white text-center shadow-sm">
+                            <div class="flex flex-col">
+                                <span class="text-[13px] font-bold" id="detail-origin">茨城</span>
+                                <span class="text-[9px] opacity-90 mt-1">産地</span>
+                            </div>
+                            <div class="w-[1px] bg-white/30"></div>
+                            <div class="flex flex-col">
+                                <span class="text-[13px] font-bold" id="detail-variety">黄心白菜</span>
+                                <span class="text-[9px] opacity-90 mt-1">品種</span>
+                            </div>
+                            <div class="w-[1px] bg-white/30"></div>
+                            <div class="flex flex-col">
+                                <span class="text-[13px] font-bold" id="detail-storage">冷暗所</span>
+                                <span class="text-[9px] opacity-90 mt-1">貯存条件</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="px-5 mt-6 space-y-4">
+                        <h2 class="text-[15px] font-bold text-theme-text">商品詳細</h2>
+                        <p class="text-[12px] leading-relaxed text-gray-600 font-light">
+                            朝露がまだ残る早朝、契約農家の畑で一株ずつ丁寧に手摘みされた旬の恵み。大地の栄養をたっぷり吸い込んだ野菜たちは、瑞々しさと本来の濃厚な甘みを湛えています。
+                        </p>
+                        <p class="text-[12px] leading-relaxed text-gray-600 font-light">
+                            化学肥料を極力控え、自然のサイクルに寄り添った健康的な栽培法を徹底。収穫からあなたの食卓へ届くまで、中間マージンと時間を徹底的にカットし、産地そのままの「採れたての空気」をお届けします。
+                        </p>
+                        <p class="text-[12px] leading-relaxed text-gray-600 font-light" id="detail-desc">
+                            産地直送：茨城県産。規格：1玉（約800g）。ご注文確認後、新鮮な状態を保ったまま冷蔵便にて2〜3日以内にお手元へ発送いたします。
+                        </p>
+                    </div>
+                </main>
+
+                <div class="absolute bottom-0 left-0 w-full bg-white border-t border-gray-100 px-5 py-3 flex items-center justify-between z-40 shadow-[0_-4px_12px_rgba(0,0,0,0.05)]">
+                    <div class="flex items-center gap-6">
+                        <div class="flex flex-col items-center cursor-pointer text-theme-muted hover:text-theme-text transition-colors">
+                            <i class="fa-solid fa-headset text-[18px]"></i>
+                            <span class="text-[9px] mt-1">カスタマー</span>
+                        </div>
+                    </div>
+                    <div class="flex items-center gap-3">
+                        <button class="w-[36px] h-[36px] bg-[#F3F8EC] border border-theme-main/40 rounded-full flex items-center justify-center hover:bg-theme-main/10 active:scale-95 transition-all shadow-sm" onclick="addCurrentToCart()">
+                            <i class="fa-solid fa-plus text-theme-main text-xs"></i>
+                        </button>
+                        <button class="bg-theme-main text-white px-8 py-2.5 rounded-full text-[13px] font-bold shadow-sm hover:opacity-90 active:scale-95 transition-all">
+                            今すぐ購入
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+
+        <div id="page-cart" class="page-container flex-1 flex-col overflow-hidden relative hidden bg-white">
+            <header class="h-[52px] bg-white px-5 flex items-center justify-center border-b border-gray-100 z-10 shrink-0 relative">
+                <h1 class="text-[16px] font-bold text-theme-text tracking-wide">マイカート</h1>
+            </header>
+            
+            <div class="flex-1 flex flex-col overflow-hidden relative">
+                <main id="cart-content" class="flex-1 overflow-y-auto no-scrollbar p-5 pb-56">
+                    </main>
+                <div id="cart-footer" class="absolute bottom-[96px] left-0 w-full px-5 py-3 bg-white border-t border-gray-100 flex items-center justify-between z-20 shadow-md">
+                    </div>
+            </div>
+        </div>
+
+
+        <div id="page-mypage" class="page-container flex-1 flex-col overflow-hidden relative hidden bg-[#FAFAFA]">
+            <header class="h-[52px] bg-white px-5 flex items-center justify-center border-b border-gray-100 z-10 shrink-0 relative">
+                <h1 class="text-[16px] font-bold text-theme-text tracking-wide">マイページ</h1>
+            </header>
+            <main class="flex-1 overflow-y-auto no-scrollbar p-5 pb-28">
+                <div class="bg-white rounded-[20px] p-4 shadow-[0_2px_8px_rgba(0,0,0,0.02)] flex items-center gap-3.5 mb-4">
+                    <div class="w-12 h-12 bg-theme-main rounded-full flex items-center justify-center text-white font-bold text-lg shadow-sm">
+                        <i class="fa-solid fa-user text-white text-base"></i>
+                    </div>
+                    <div class="flex flex-col">
+                        <h2 class="text-[14px] font-bold text-theme-text">ゲストユーザー</h2>
+                        <span class="text-[10px] text-theme-muted mt-0.5">会員ID: 88293740</span>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-[20px] p-4 shadow-[0_2px_8px_rgba(0,0,0,0.02)] mb-4">
+                    <h3 class="text-[12px] font-bold text-theme-text mb-3">注文状況</h3>
+                    <div class="flex justify-around text-center">
+                        <div class="flex flex-col items-center gap-1.5 cursor-pointer text-gray-600 hover:text-theme-main">
+                            <i class="fa-solid fa-wallet text-base text-theme-main"></i>
+                            <span class="text-[10px]">未払い</span>
+                        </div>
+                        <div class="flex flex-col items-center gap-1.5 cursor-pointer text-gray-600 hover:text-theme-main">
+                            <i class="fa-solid fa-box-open text-base text-theme-main"></i>
+                            <span class="text-[10px]">配送中</span>
+                        </div>
+                        <div class="flex flex-col items-center gap-1.5 cursor-pointer text-gray-600 hover:text-theme-main">
+                            <i class="fa-solid fa-circle-check text-base text-theme-main"></i>
+                            <span class="text-[10px]">完了</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="bg-white rounded-[20px] p-2 shadow-[0_2px_8px_rgba(0,0,0,0.02)]">
+                    <div class="flex items-center justify-between p-3 border-b border-gray-100 cursor-pointer hover:bg-gray-50 rounded-xl">
+                        <span class="text-[12px] text-theme-text">お届け先住所</span>
+                        <i class="fa-solid fa-chevron-right text-xs text-gray-300"></i>
+                    </div>
+                    <div class="flex items-center justify-between p-3 border-b border-gray-100 cursor-pointer hover:bg-gray-50 rounded-xl">
+                        <span class="text-[12px] text-theme-text">お気に入り商品</span>
+                        <i class="fa-solid fa-chevron-right text-xs text-gray-300"></i>
+                    </div>
+                    <div class="flex items-center justify-between p-3 cursor-pointer hover:bg-gray-50 rounded-xl">
+                        <span class="text-[12px] text-theme-text">設定・ヘルプ</span>
+                        <i class="fa-solid fa-chevron-right text-xs text-gray-300"></i>
+                    </div>
+                </div>
+            </main>
+        </div>
+
+
+        <nav id="global-nav" class="absolute bottom-0 w-full bg-theme-bar border-t border-gray-100 flex justify-between items-start px-8 pt-3 pb-[34px] z-40">
+
+            <div class="nav-tab flex flex-col items-center gap-1.5 cursor-pointer w-12 group" 
+                 onclick="switchPage('home')">
+                <div class="w-9 h-9 flex items-center justify-center relative">
+                    <img src="assets/web/assets/images/image-0029.webp" alt="Home" id="tab-img-home" class="nav-img w-full h-full object-contain scale-[1.4] transition-all duration-300">
+                </div>
+                <span class="nav-text text-[9px] font-medium text-theme-main transition-colors duration-300 whitespace-nowrap" id="tab-txt-home">ホーム</span>
+            </div>
+
+            <div class="nav-tab flex flex-col items-center gap-1.5 cursor-pointer w-12 group" 
+                 onclick="switchPage('category', '野菜')">
+                <div class="w-9 h-9 flex items-center justify-center relative">
+                    <img src="assets/web/assets/images/image-0030.webp" alt="Scan" id="tab-img-category" class="nav-img w-full h-full object-contain scale-[1.4] grayscale opacity-40 transition-all duration-300">
+                </div>
+                <span class="nav-text text-[9px] font-normal text-theme-muted transition-colors duration-300 whitespace-nowrap" id="tab-txt-category">探す</span>
+            </div>
+
+            <div class="nav-tab flex flex-col items-center gap-1.5 cursor-pointer w-12 group relative" 
+                 onclick="switchPage('cart')">
+                <div class="w-9 h-9 flex items-center justify-center relative">
+                    <img src="assets/web/assets/images/image-0031.webp" alt="Cart" id="tab-img-cart" class="nav-img w-full h-full object-contain scale-[1.4] grayscale opacity-40 transition-all duration-300">
+                    <span id="cart-badge" class="absolute -top-1 -right-1 bg-red-500 text-white text-[9px] font-bold w-4 h-4 rounded-full flex items-center justify-center shadow-sm hidden">0</span>
+                </div>
+                <span class="nav-text text-[9px] font-normal text-theme-muted transition-colors duration-300 whitespace-nowrap" id="tab-txt-cart">カート</span>
+            </div>
+
+            <div class="nav-tab flex flex-col items-center gap-1.5 cursor-pointer w-12 group" 
+                 onclick="switchPage('mypage')">
+                <div class="w-9 h-9 flex items-center justify-center relative">
+                    <img src="assets/web/assets/images/image-0032.webp" alt="MyPage" id="tab-img-mypage" class="nav-img w-full h-full object-contain scale-[1.4] grayscale opacity-40 transition-all duration-300">
+                </div>
+                <span class="nav-text text-[9px] font-normal text-theme-muted transition-colors duration-300 whitespace-nowrap" id="tab-txt-mypage">マイページ</span>
+            </div>
+        </nav>
+
+    </div>
+
+    <div id="fullscreen-video-modal" class="fixed inset-0 bg-black/90 z-[100] hidden items-center justify-center">
+        <div class="absolute top-6 left-6 text-white text-sm cursor-pointer flex items-center gap-2" onclick="closeFullscreenVideo()">
+            <i class="fa-solid fa-chevron-left"></i> 戻る
+        </div>
+        <video controls autoplay class="w-full max-w-md max-h-[80vh] object-contain">
+            <source src="assets/videos/video-0001.mp4" type="video/mp4">
+        </video>
+    </div>
+
+    <script>
+        let cartItems = [];
+        let currentDetailItem = null;
+        let previousPageId = 'home';
+
+        // Banner 轮播控制逻辑
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.banner-slide');
+        const dots = document.querySelectorAll('.dot');
+
+        function showSlide(index) {
+            slides.forEach((slide, i) => {
+                slide.style.opacity = (i === index) ? '1' : '0';
+            });
+            dots.forEach((dot, i) => {
+                dot.style.opacity = (i === index) ? '1' : '0.5';
+            });
+        }
+
+        function nextSlide() {
+            currentSlide = (currentSlide + 1) % slides.length;
+            showSlide(currentSlide);
+        }
+
+        // 每隔 3.5 秒自动轮播
+        setInterval(nextSlide, 3500);
+
+        const categoryData = {
+            '野菜': [
+                { name: 'ズッキーニ', price: 380, priceStr: '¥380', spec: '/200g', origin: '長野県産', variety: 'イタリアン', storage: '冷暗所', img: 'assets/images/image-0025.jpg' },
+                { name: '小松菜', price: 280, priceStr: '¥280', spec: '/1袋', origin: '埼玉県産', variety: '江戸菜', storage: '冷蔵', img: 'assets/images/image-0026.jpg' },
+                { name: 'ブロッコリー', price: 420, priceStr: '¥420', spec: '/1株', origin: '群馬県産', variety: '緑の宝石', storage: '冷蔵', img: 'assets/images/image-0027.jpg' },
+                { name: '白菜', price: 580, priceStr: '¥580', spec: '/1玉', origin: '茨城県産', variety: '黄心白菜', storage: '冷暗所', img: 'assets/images/image-0028.jpg' },
+                { name: '長ねぎ', price: 250, priceStr: '¥250', spec: '/1束', origin: '千葉県産', variety: '千住一本太', storage: '冷暗所', img: 'assets/images/image-0033.jpg' },
+                { name: '玉ねぎ', price: 320, priceStr: '¥320', spec: '/1袋', origin: '北海道産', variety: '北の輝き', storage: '冷暗所', img: 'assets/images/image-0034.jpg' },
+                { name: 'きゅうり', price: 240, priceStr: '¥240', spec: '/3本', origin: '宮崎県産', variety: '夏秋きゅうり', storage: '冷蔵', img: 'assets/images/image-0035.jpg' },
+                { name: 'トマト', price: 450, priceStr: '¥450', spec: '/1パック', origin: '熊本県産', variety: 'フルティカ', storage: '常温', img: 'assets/images/image-0036.jpg' }
+            ],
+            '果物': [
+                { name: '旬のりんご', price: 500, priceStr: '¥500', spec: '/2玉', origin: '青森県産', variety: 'サンふじ', storage: '冷蔵', img: 'assets/images/image-0019.png' },
+                { name: '甘熟みかん', price: 450, priceStr: '¥450', spec: '/1袋', origin: '愛媛県産', variety: '紅まどんな', storage: '冷暗所', img: 'assets/images/image-0019.png' }
+            ],
+            '肉': [
+                { name: '特選和牛スライス', price: 1280, priceStr: '¥1,280', spec: '/250g', origin: '山形県産', variety: '山形牛 A5', storage: '冷凍', img: 'assets/web/assets/images/image-0020.webp' }
+            ],
+            '卵': [
+                { name: '平飼い自然卵', price: 350, priceStr: '¥350', spec: '/6個入', origin: '千葉県産', variety: '有精卵', storage: '冷蔵', img: 'assets/web/assets/images/image-0021.webp' }
+            ],
+            '魚': [
+                { name: '新鮮真アジ干物', price: 480, priceStr: '¥480', spec: '/2枚', origin: '静岡県産', variety: '地まき網', storage: '冷蔵', img: 'assets/web/assets/images/image-0022.webp' }
+            ],
+            '乳製品': [
+                { name: '牧場牛乳', price: 290, priceStr: '¥290', spec: '/1000ml', origin: '北海道産', variety: 'ノンホモ牛乳', storage: '冷蔵', img: 'assets/web/assets/images/image-0023.webp' }
+            ],
+            'きのこ': [
+                { name: 'しいたけ', price: 250, priceStr: '¥250', spec: '/1パック', origin: '新潟県産', variety: '原木栽培', storage: '冷蔵', img: 'assets/web/assets/images/image-0024.webp' }
+            ]
+        };
+
+        function togglePlayVideo() {
+            const video = document.getElementById('detail-video');
+            const icon = document.getElementById('play-icon');
+            if (video.paused) {
+                video.play();
+                icon.className = "fa-solid fa-pause text-xs";
+            } else {
+                video.pause();
+                icon.className = "fa-solid fa-play text-xs ml-0.5";
+            }
+        }
+
+        function handleDetailScroll(el) {
+            const scrollTop = el.scrollTop;
+            const videoContainer = document.getElementById('video-container');
+            let newHeight = 280 - scrollTop * 0.8;
+            if (newHeight < 150) newHeight = 150;
+            if (newHeight > 280) newHeight = 280;
+            videoContainer.style.height = newHeight + 'px';
+        }
+
+        function addToCart(name, price, origin, spec, img) {
+            const existing = cartItems.find(item => item.name === name);
+            if (existing) {
+                existing.qty += 1;
+            } else {
+                cartItems.push({ name, price, origin, spec, img, qty: 1 });
+            }
+            updateCartBadge();
+            renderCartPage();
+        }
+
+        function addCurrentToCart() {
+            if (currentDetailItem) {
+                addToCart(currentDetailItem.name, currentDetailItem.price, currentDetailItem.origin, currentDetailItem.spec, currentDetailItem.img);
+            }
+        }
+
+        function updateCartBadge() {
+            const totalQty = cartItems.reduce((sum, item) => sum + item.qty, 0);
+            const badge = document.getElementById('cart-badge');
+            if (totalQty > 0) {
+                badge.textContent = totalQty;
+                badge.classList.remove('hidden');
+            } else {
+                badge.classList.add('hidden');
+            }
+        }
+
+        function renderCartPage() {
+            const container = document.getElementById('cart-content');
+            const footer = document.getElementById('cart-footer');
+
+            if (cartItems.length === 0) {
+                container.innerHTML = `
+                    <div class="h-full flex flex-col items-center justify-center text-center py-20">
+                        <i class="fa-solid fa-basket-shopping text-4xl text-theme-muted mb-3"></i>
+                        <p class="text-[13px] text-theme-muted">カートに商品はありません</p>
+                    </div>
+                `;
+                footer.innerHTML = '';
+                return;
+            }
+
+            let html = '';
+            let totalPrice = 0;
+
+            cartItems.forEach((item, index) => {
+                totalPrice += item.price * item.qty;
+                html += `
+                    <div class="bg-gray-50 rounded-[16px] p-3.5 border border-gray-150 flex items-center gap-3 mb-3">
+                        <div class="w-[60px] h-[60px] bg-white rounded-[10px] overflow-hidden p-1 shrink-0 flex items-center justify-center border border-gray-200">
+                            <img src="${item.img}" alt="${item.name}" class="max-w-full max-h-full object-contain">
+                        </div>
+                        <div class="flex-1 flex flex-col">
+                            <h3 class="text-[13px] font-medium text-theme-text">${item.name}</h3>
+                            <span class="text-[10px] text-theme-muted mt-0.5">${item.origin} / ${item.spec}</span>
+                            <div class="flex items-center justify-between mt-2">
+                                <span class="text-[13px] font-bold text-red-500">¥${item.price * item.qty}</span>
+                                <div class="flex items-center gap-2.5 border border-gray-200 rounded-lg bg-white px-2 py-0.5">
+                                    <span class="text-xs text-gray-500 cursor-pointer" onclick="changeQty(${index}, -1)">-</span>
+                                    <span class="text-xs font-bold text-theme-text">${item.qty}</span>
+                                    <span class="text-xs text-theme-main cursor-pointer" onclick="changeQty(${index}, 1)">+</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+
+            container.innerHTML = html;
+            footer.innerHTML = `
+                <div class="flex flex-col">
+                    <span class="text-[10px] text-theme-muted">合計金額 (税込)</span>
+                    <span class="text-[16px] font-bold text-red-500">¥${totalPrice}</span>
+                </div>
+                <button class="bg-theme-main text-white px-8 py-2.5 rounded-full text-[13px] font-bold shadow-sm hover:opacity-90 active:scale-95 transition-all">
+                    レジに進む
+                </button>
+            `;
+        }
+
+        function changeQty(index, delta) {
+            cartItems[index].qty += delta;
+            if (cartItems[index].qty <= 0) {
+                cartItems.splice(index, 1);
+            }
+            updateCartBadge();
+            renderCartPage();
+        }
+
+        function switchPage(pageId, categoryName = '野菜') {
+            if (pageId !== 'detail' && pageId !== 'splash') {
+                previousPageId = pageId;
+            }
+
+            document.querySelectorAll('.page-container').forEach(page => {
+                page.classList.add('hidden');
+                page.classList.remove('flex');
+            });
+            const target = document.getElementById(`page-${pageId}`);
+            if (target) {
+                target.classList.remove('hidden');
+                target.classList.add('flex');
+            }
+
+            const globalNav = document.getElementById('global-nav');
+            if (pageId === 'detail' || pageId === 'splash') {
+                globalNav.classList.add('hidden');
+            } else {
+                globalNav.classList.remove('hidden');
+            }
+
+            const tabs = ['home', 'category', 'cart', 'mypage'];
+            tabs.forEach(t => {
+                const img = document.getElementById(`tab-img-${t}`);
+                const txt = document.getElementById(`tab-txt-${t}`);
+                if (t === pageId) {
+                    img.classList.remove('grayscale', 'opacity-40');
+                    img.classList.add('scale-[1.6]');
+                    txt.classList.remove('text-theme-muted', 'font-normal');
+                    txt.classList.add('text-theme-main', 'font-medium');
+                } else {
+                    img.classList.add('grayscale', 'opacity-40');
+                    img.classList.remove('scale-[1.6]');
+                    txt.classList.add('text-theme-muted', 'font-normal');
+                    txt.classList.remove('text-theme-main', 'font-medium');
+                }
+            });
+
+            if (pageId === 'category') {
+                renderCategoryProducts(categoryName);
+            }
+            if (pageId === 'cart') {
+                renderCartPage();
+            }
+        }
+
+        function openDetail(name, priceStr, origin, variety, storage, img, spec) {
+            currentDetailItem = { name, price: parseInt(priceStr.replace('¥', '')), origin, spec, img };
+            document.getElementById('detail-title').textContent = name;
+            document.getElementById('detail-price').innerHTML = `${priceStr}<span class="text-[11px] font-normal text-theme-muted ml-1">起</span>`;
+            document.getElementById('detail-origin').textContent = origin.replace('県産', '').replace('産', '');
+            document.getElementById('detail-variety').textContent = variety;
+            document.getElementById('detail-storage').textContent = storage;
+            
+            const video = document.getElementById('detail-video');
+            const icon = document.getElementById('play-icon');
+            video.currentTime = 0;
+            video.play();
+            icon.className = "fa-solid fa-pause text-xs";
+
+            const videoContainer = document.getElementById('video-container');
+            if(videoContainer) videoContainer.style.height = '280px';
+
+            switchPage('detail');
+        }
+
+        function goBackToPrevious() {
+            switchPage(previousPageId);
+        }
+
+        function renderCategoryProducts(categoryName) {
+            document.querySelectorAll('.category-item').forEach(item => {
+                const catName = item.getAttribute('data-cat');
+                const span = item.querySelector('span');
+                if (catName === categoryName) {
+                    item.classList.remove('border-transparent');
+                    item.classList.add('border-theme-main', 'bg-white');
+                    span.classList.remove('text-theme-muted', 'font-normal');
+                    span.classList.add('text-theme-main', 'font-bold');
+                } else {
+                    item.classList.remove('border-theme-main', 'bg-white');
+                    item.classList.add('border-transparent');
+                    span.classList.remove('text-theme-main', 'font-bold');
+                    span.classList.add('text-theme-muted', 'font-normal');
+                }
+            });
+
+            const gridContainer = document.getElementById('product-grid');
+            const products = categoryData[categoryName] || [];
+            let html = '';
+            products.forEach(item => {
+                html += `
+                    <div class="bg-white rounded-[14px] p-2.5 shadow-[0_2px_6px_rgba(0,0,0,0.02)] border border-gray-150 relative cursor-pointer group flex flex-col justify-between" onclick="openDetail('${item.name}', '${item.priceStr}', '${item.origin}', '${item.variety || item.name}', '${item.storage || '冷蔵'}', '${item.img}', '${item.spec}')">
+                        <div>
+                            <div class="w-full aspect-[4/3] rounded-[8px] overflow-hidden relative bg-white flex items-center justify-center p-1.5 mb-1.5">
+                                <img src="${item.img}" alt="${item.name}" class="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform duration-300">
+                            </div>
+                            <div class="absolute top-2 left-2 bg-white/95 backdrop-blur px-1 py-0.5 rounded-[3px] text-[7px] font-normal text-theme-dark border border-gray-200 shadow-sm">${item.origin}</div>
+                            <div class="flex items-center justify-between pt-1">
+                                <div class="flex flex-col">
+                                    <h3 class="text-[12px] font-medium text-theme-text tracking-tight leading-snug truncate w-[85px]">${item.name}</h3>
+                                    <div class="flex items-baseline gap-1 mt-1">
+                                        <span class="text-[10px] font-normal text-theme-muted">${item.priceStr}</span>
+                                        <span class="text-[8px] font-normal text-theme-muted">${item.spec}</span>
+                                    </div>
+                                </div>
+                                <div class="w-[22px] h-[22px] bg-theme-main rounded-full flex items-center justify-center shrink-0 shadow-sm hover:opacity-90 active:scale-95 transition-all" onclick="event.stopPropagation(); addToCart('${item.name}', ${item.price}, '${item.origin}', '${item.spec}', '${item.img}');">
+                                    <i class="fa-solid fa-plus text-white text-[10px]"></i>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                `;
+            });
+            gridContainer.innerHTML = html;
+        }
+
+        function selectCategoryItem(element) {
+            const catName = element.getAttribute('data-cat');
+            renderCategoryProducts(catName);
+        }
+
+        function openFullscreenVideo() {
+            const modal = document.getElementById('fullscreen-video-modal');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeFullscreenVideo() {
+            const modal = document.getElementById('fullscreen-video-modal');
+            modal.classList.remove('flex');
+            modal.classList.add('hidden');
+        }
+
+        let autoDemoTimers = [];
+
+        function stopAutoDemo() {
+            autoDemoTimers.forEach(clearTimeout);
+            autoDemoTimers = [];
+        }
+
+        function startAutoDemo() {
+            stopAutoDemo();
+            autoDemoTimers.push(setTimeout(() => {
+                document.getElementById('page-splash')?.click();
+            }, 2400));
+            autoDemoTimers.push(setTimeout(() => {
+                document.getElementById('auto-category-trigger')?.click();
+            }, 6800));
+            autoDemoTimers.push(setTimeout(() => {
+                const tomato = categoryData['野菜'].find(item => item.name === 'トマト');
+                if (tomato) {
+                    openDetail(tomato.name, tomato.priceStr, tomato.origin, tomato.variety, tomato.storage, tomato.img, tomato.spec);
+                }
+            }, 11200));
+            autoDemoTimers.push(setTimeout(() => {
+                switchPage('splash');
+                startAutoDemo();
+            }, 19600));
+        }
+
+        document.addEventListener('pointerdown', stopAutoDemo, { once: true, capture: true });
+
+        window.addEventListener('DOMContentLoaded', () => {
+            switchPage('splash');
+        });
+    </script>
+<script data-app="toretate" src="/Portfolio/room-content/phone-fit.js"></script></body>
+</html>

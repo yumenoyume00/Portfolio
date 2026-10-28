@@ -1,0 +1,12 @@
+/* Local trial: one retracting navigation, introductory copy, unobstructed work. */
+.topnav{background:transparent!important;border:0!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;transform:translateY(-110%)!important;transition:transform .4s cubic-bezier(.22,.7,.3,1)!important}
+body.e35-nav-open .topnav,.topnav:focus-within{transform:translateY(0)!important}
+.e35-top-edge{position:fixed;inset:0 0 auto;height:12px;z-index:101;background:transparent}
+body.e35-nav-open .e35-top-edge{pointer-events:none}
+body:is(.is-landing,.about-intro-pending) .e35-top-edge{pointer-events:none}
+#projects :is(.project-head,.portfolio-head){background:transparent!important;box-shadow:none!important;backdrop-filter:none!important}
+#projects .e27-floor,#projects .e27-vegetaria>.vegetaria-v78-visuals{clip-path:none!important}
+#projects .e27-board{top:0!important;height:100vh!important;height:100svh!important}
+#projects .e27-vegetaria .vegetaria-stage-v78{perspective:none!important}
+#projects .e27-vegetaria .veg-item-v78{transition:none!important}
+@media(prefers-reduced-motion:reduce){.topnav{transition:none!important}}

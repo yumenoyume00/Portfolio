@@ -1,0 +1,18 @@
+/* Local-only controls: let artwork pass behind the floating text. */
+.topnav{background:transparent!important;border:0!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important}
+body.e35-nav-collapsed .topnav{transform:translateY(-110%)!important;pointer-events:none}
+.e35-toggle{position:fixed;z-index:110;border:0;background:transparent;color:#777;font:11px/1.4 "IBM Plex Mono",monospace;letter-spacing:.04em;padding:10px 12px;cursor:pointer!important;transition:top .35s ease,color .2s ease}
+.e35-toggle:hover,.e35-toggle:focus-visible{color:var(--pink);outline:1px solid currentColor;outline-offset:-5px}
+.e35-nav-toggle{left:50%;top:52px;transform:translateX(-50%)}
+.e35-copy-toggle{right:15px;top:63px}
+body.e35-nav-collapsed .e35-toggle{top:0}
+body:is(.is-landing,.about-intro-pending) .e35-toggle{visibility:hidden}
+#projects :is(.project-head,.portfolio-head){background:transparent!important;box-shadow:none!important;backdrop-filter:none!important}
+#projects .e27-floor{clip-path:none!important}
+#projects .e27-vegetaria>.vegetaria-v78-visuals{clip-path:none!important}
+#projects :is(.project-head,.portfolio-head){clip-path:inset(0 -4px -4px);transition:clip-path .4s cubic-bezier(.22,.7,.3,1)!important}
+#projects :is(.project-head,.portfolio-head)>*{translate:0 0;transition:translate .4s cubic-bezier(.22,.7,.3,1)}
+body.e35-copy-collapsed #projects :is(.project-head,.portfolio-head){clip-path:inset(0 -4px 100%);pointer-events:none!important}
+body.e35-copy-collapsed #projects :is(.project-head,.portfolio-head)>*{translate:0 -110%;pointer-events:none!important}
+body.e35-copy-collapsed #projects :is(.project-head,.portfolio-head) *{pointer-events:none!important}
+@media(prefers-reduced-motion:reduce){.e35-toggle,#projects :is(.project-head,.portfolio-head),#projects :is(.project-head,.portfolio-head)>*{transition:none!important}}

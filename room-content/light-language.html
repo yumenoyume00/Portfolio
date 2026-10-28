@@ -1,0 +1,439 @@
+<!doctype html>
+<html lang="ja">
+<head><base href="/Portfolio/"><script src="/Portfolio/room-content/device-bridge.js"></script><script src="/Portfolio/room-content/prototype-ja.js"></script>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Light Language — interactive prototype v11</title>
+<style>
+
+@font-face{font-family:"Source Sans Pro";src:url(assets/fonts/font-0001.ttf) format("truetype");font-weight:400;font-style:normal;font-display:swap}
+@font-face{font-family:"Source Sans Pro";src:url(assets/fonts/font-0002.ttf) format("truetype");font-weight:600;font-style:normal;font-display:swap}
+@font-face{font-family:"Source Sans Pro";src:url(assets/fonts/font-0003.ttf) format("truetype");font-weight:700;font-style:normal;font-display:swap}
+@font-face{font-family:"Poppins";src:url(assets/fonts/font-0004.ttf) format("truetype");font-weight:600;font-style:normal;font-display:swap}
+:root{
+  --blue:#4F80FF; --blue2:#94B7FF; --blue3:#D6E6FF;
+  --pink:#FFCFF0; --pinkStrong:#FFB8F1; --pink2:#FFE6F7;
+  --green:#A9ECD8; --greenStrong:#6EE5C8; --green2:rgba(169,236,216,.28);
+  --yellow:#FFF38E; --yellow2:#FFFBE1;
+  --ink:#1F2937; --inkStrong:#111827; --muted:#6B7280; --line:#D1D5DB; --soft:#F2F4F6;
+  --scale:1;
+}
+*{box-sizing:border-box} html,body{margin:0;width:100%;min-height:100%;background:#f3f3f3;font-family:"Source Sans Pro",-apple-system,BlinkMacSystemFont,"Hiragino Kaku Gothic ProN","Yu Gothic","Noto Sans JP","PingFang SC","Microsoft YaHei",Arial,sans-serif;color:var(--ink);-webkit-font-smoothing:antialiased}
+button,input{font:inherit;color:inherit} button{cursor:pointer}
+.stage{width:calc(390px*var(--scale));height:calc(844px*var(--scale));margin:max(0px,calc((100dvh - 844px*var(--scale))/2)) auto 0;position:relative}
+.app{width:390px;height:844px;position:absolute;inset:0 auto auto 0;transform:scale(var(--scale));transform-origin:top left;overflow:hidden;background:white;isolation:isolate}
+.screen{position:absolute;inset:0;background:white;overflow:hidden;animation:fade .18s ease both}
+@keyframes fade{from{opacity:.25;transform:translateY(2px)}to{opacity:1;transform:none}}
+.status{position:absolute;z-index:30;top:0;left:0;width:100%;height:48px;pointer-events:none;font-size:14px;color:#111}
+.status .time{position:absolute;left:24px;top:17px}.status .icons{position:absolute;right:23px;top:17px;display:flex;gap:7px;align-items:center;font-size:11px;letter-spacing:-1px}.status .battery{width:21px;height:10px;border:1.6px solid currentColor;border-radius:3px;position:relative}.status .battery:after{content:"";position:absolute;right:1.5px;top:1.5px;width:13px;height:5px;background:currentColor;border-radius:1px}.status .battery:before{content:"";position:absolute;right:-3px;top:2px;width:2px;height:4px;background:currentColor;border-radius:0 1px 1px 0}
+
+/* animated color field */
+.color-field{position:absolute;inset:-90px;background:#8ca8ff;overflow:hidden}
+.color-field .blob{position:absolute;border-radius:50%;filter:blur(40px);opacity:.95;mix-blend-mode:normal;will-change:transform}
+.b1{width:430px;height:430px;left:20px;top:-175px;background:#FFF38E;animation:m1 8.5s ease-in-out infinite alternate}
+.b2{width:440px;height:440px;left:-210px;top:150px;background:#A9ECD8;animation:m2 10s ease-in-out infinite alternate}
+.b3{width:470px;height:470px;left:80px;top:270px;background:#FFCFF0;animation:m3 9.2s ease-in-out infinite alternate}
+.b4{width:430px;height:430px;right:-205px;bottom:-5px;background:#94B7FF;animation:m4 11s ease-in-out infinite alternate}
+.b5{width:510px;height:510px;left:-120px;bottom:-250px;background:#4F80FF;animation:m5 12s ease-in-out infinite alternate}
+@keyframes m1{0%{transform:translate(-60px,-30px) scale(.95)}50%{transform:translate(125px,105px) scale(1.2)}100%{transform:translate(-8px,190px) scale(1.04)}}
+@keyframes m2{0%{transform:translate(-20px,-70px) scale(1.05)}50%{transform:translate(155px,35px) scale(1.27)}100%{transform:translate(75px,190px) scale(.98)}}
+@keyframes m3{0%{transform:translate(70px,-70px) scale(1)}50%{transform:translate(-135px,55px) scale(1.2)}100%{transform:translate(18px,175px) scale(1.08)}}
+@keyframes m4{0%{transform:translate(70px,-25px) scale(.94)}50%{transform:translate(-155px,-170px) scale(1.25)}100%{transform:translate(-70px,55px) scale(1.02)}}
+@keyframes m5{0%{transform:translate(-80px,70px) scale(1.12)}50%{transform:translate(145px,-140px) scale(1.22)}100%{transform:translate(190px,10px) scale(.99)}}
+
+.back{position:absolute;z-index:40;left:18px;top:55px;width:38px;height:38px;border-radius:50%;border:1px solid rgba(31,41,55,.18);background:rgba(255,255,255,.72);backdrop-filter:blur(10px);box-shadow:0 4px 14px rgba(0,0,0,.05)}
+.back:before{content:"";position:absolute;width:9px;height:9px;border-left:1.8px solid #1f2937;border-bottom:1.8px solid #1f2937;transform:rotate(45deg);left:15px;top:12px}
+.back:active{transform:scale(.94)}
+
+/* landing */
+.landing{background:#4F80FF}.landing-logo-svg{position:absolute;z-index:3;top:203px;left:50%;transform:translateX(-50%);width:156px;height:128px;overflow:visible}
+.tagline{position:absolute;z-index:4;top:376px;left:0;width:100%;text-align:center;color:white;font-size:17px;font-weight:650;letter-spacing:.16em}
+.landing-actions{position:absolute;z-index:4;left:24px;right:23px;bottom:73px;display:grid;gap:20px}.pill{height:54px;border-radius:27px;font-size:16px;font-weight:650;transition:.18s ease}.landing .pill.signin{border:1px solid #101827;background:transparent}.landing .pill.signup{border:1px solid rgba(255,255,255,.95);color:white;background:transparent}.landing .pill.signin:hover,.landing .pill.signin:focus-visible{background:#101827;color:white}.landing .pill.signup:hover,.landing .pill.signup:focus-visible{background:white;color:#5a6292}.pill:active{transform:scale(.985)}
+
+/* auth */
+.auth{background:#fff}.auth-hero{position:absolute;inset:0 0 auto;height:338px;overflow:hidden}.auth-copy{position:absolute;z-index:4;top:163px;left:0;width:100%;text-align:center;font-size:18px;font-weight:700;letter-spacing:.17em;color:#1e2a40}.auth-sheet{position:absolute;z-index:5;left:0;right:0;top:292px;bottom:0;border-radius:42px 42px 0 0;background:white;padding:42px 22px 26px}.auth-title{text-align:center;margin:0 0 24px;font-size:22px;line-height:1.1}.fields{display:grid;gap:13px}.field{width:100%;height:49px;border:1px solid #9aa3b4;border-radius:25px;padding:0 17px;font-size:14px;outline:none}.field:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(79,128,255,.11)}.small-row{height:31px;display:flex;justify-content:flex-end;align-items:center}.textbtn{border:0;background:transparent;font-size:12px;color:#747d8c;padding:5px}.auth-primary,.auth-secondary{width:100%;height:49px;border-radius:25px;font-size:14.5px;font-weight:700}.auth-primary{border:0;background:var(--pink)}.auth.signup .auth-primary{background:var(--blue2)}.auth-secondary{border:1px solid #aab1bd;background:white;color:#757d8c}.divider{display:flex;align-items:center;gap:10px;margin:16px 0 13px;color:#a0a6b0;font-size:10px;text-transform:uppercase;letter-spacing:.08em}.divider:before,.divider:after{content:"";flex:1;height:1px;background:#e6e8ec}.switch{text-align:center;margin:14px 0 0;color:#858c98;font-size:12px}.switch button{border:0;background:transparent;color:#426bd6;font-weight:700;font-size:12px}
+
+/* intro */
+.intro-center{position:absolute;left:28px;width:334px;top:290px;text-align:center}.intro-title{font-size:19px;margin:0 0 10px;line-height:1.35}.intro-copy{font-size:14px;color:#6d7687;line-height:1.55;margin:0}.bottom-action{position:absolute;left:22px;bottom:24px;width:346px;height:52px;border-radius:26px;border:0;background:var(--pink);font-size:15px;font-weight:700}.explain{position:absolute;top:115px;left:22px;width:346px}.explain h1{margin:0 0 24px;font-size:19px;line-height:1.34}.explain p{font-size:13.5px;line-height:1.5;color:#697183;margin:0 0 16px}.explain-list{display:grid;gap:12px}.explain-chip{min-height:58px;border-radius:30px;padding:12px 18px;display:flex;align-items:center;font-size:14.5px;font-weight:700}.blue{background:var(--blue2)}.green{background:var(--green)}.yellow{background:var(--yellow)}
+
+/* language selection */
+.select-screen h1{position:absolute;top:109px;left:24px;width:342px;margin:0;font-size:17px;line-height:1.42}.language-list{position:absolute;left:22px;right:22px;top:210px;display:grid;gap:11px}.language-option{height:48px;border:1px solid #111827;border-radius:24px;background:white;text-align:left;padding:0 18px;font-size:15px;font-weight:400;transition:.16s ease}.language-option[data-selected="true"]{border-color:transparent;transform:translateX(3px)}.select-screen[data-step="q3"] .language-option[data-selected="true"]{background:var(--blue);color:white}.select-screen[data-step="q4"] .language-option[data-selected="true"]{background:var(--green)}.select-screen[data-step="q5"] .language-option[data-selected="true"]{background:var(--yellow)}
+ .next-frame{position:absolute;z-index:5;left:22px;bottom:24px;width:346px;height:52px;border:1px solid #1f2937;border-radius:27px;background:white;font-size:14px;font-weight:750;letter-spacing:.08em;display:flex;align-items:center;justify-content:center;transition:.15s ease}.next-frame:disabled{opacity:.35;cursor:default}.next-frame:not(:disabled):hover{background:#1f2937;color:white}
+
+/* setting */
+.setting{background:#4F80FF}.setting .center{position:absolute;z-index:4;top:330px;left:35px;width:320px;text-align:center;color:white}.setting h1{font-size:20px;margin:0 0 9px}.setting p{font-size:14px;line-height:1.5;margin:0}.setting .dots{display:flex;gap:8px;justify-content:center;margin-top:20px}.setting .dots i{width:7px;height:7px;border-radius:50%;background:white;animation:dot 1s ease-in-out infinite}.setting .dots i:nth-child(2){animation-delay:.15s}.setting .dots i:nth-child(3){animation-delay:.3s}@keyframes dot{0%,100%{opacity:.25;transform:translateY(0)}50%{opacity:1;transform:translateY(-5px)}}
+
+/* books */
+.books{background:#fff}
+.books .back{top:51px}
+.book-title{position:absolute;top:66px;left:64px;right:16px;font-size:18px;line-height:1.15;letter-spacing:0;font-weight:400;color:var(--inkStrong);white-space:nowrap}
+.book-title strong{font-weight:400}
+.book-sections{position:absolute;top:116px;left:0;right:0;bottom:88px;overflow-y:auto;overflow-x:hidden;padding:4px 0 8px;scrollbar-width:none}
+.book-sections::-webkit-scrollbar{display:none}
+.book-section{margin:0 0 20px}
+.book-section h2{font-size:20px;font-weight:600;line-height:1.2;letter-spacing:0;margin:0 0 9px 20px;color:#000}
+.book-row{
+  display:flex;gap:10px;overflow-x:auto;overflow-y:hidden;
+  padding:6px 22px 8px 20px;scroll-snap-type:x proximity;
+  -webkit-overflow-scrolling:touch;scrollbar-width:none;touch-action:pan-x;
+  cursor:grab
+}
+.book-row:active{cursor:grabbing}
+.book-row::-webkit-scrollbar{display:none}
+.book{
+  width:85px;height:140px;flex:0 0 85px;border:0;background:transparent;
+  padding:0;position:relative;transition:.16s ease;scroll-snap-align:start
+}
+.cover{
+  width:85px;height:140px;border-radius:9px;position:relative;overflow:hidden;
+  background:#d1d5db;text-align:left;box-shadow:none;border:0;padding:12px 9px;
+  color:#343b47
+}
+.cover:before{content:none}
+.cover strong{
+  position:relative;z-index:2;display:block;font-size:10.5px;line-height:1.18;
+  font-weight:600;max-width:64px
+}
+.cover small{
+  position:absolute;z-index:2;left:9px;bottom:9px;font-size:6.5px;
+  letter-spacing:.045em;color:#717782
+}
+.cover .tiny{
+  position:absolute;z-index:2;right:8px;top:9px;font-size:6.5px;color:#717782
+}
+/* Keep every mock book intentionally neutral gray. */
+.cover.c1,.cover.c2,.cover.c3,.cover.c4,.cover.c5,.cover.c6,.cover.c7,.cover.c8,.cover.c9{background:#d1d5db}
+.book[data-selected="true"]{transform:none}
+.book[data-selected="true"] .cover{outline:none;box-shadow:inset 0 0 0 2px #4f80ff;background:#cfd3da}
+.book[data-selected="true"]:after{
+  content:"";position:absolute;right:7px;top:7px;width:9px;height:9px;
+  border-radius:50%;background:#4f80ff
+}
+.books .next-frame{bottom:15px;border:0;color:white;background:var(--blue);box-shadow:none}
+.books .next-frame:not(:disabled):hover{background:#3f72ee;color:white}
+.books .next-frame:disabled{opacity:.35;background:#aac0ff;color:white}
+
+/* app home/cards */
+.home{background:#fff}
+.home-title{position:absolute;top:67px;left:24px;margin:0;font-size:30px;line-height:1.08;font-weight:400;letter-spacing:.005em;color:var(--inkStrong)}
+.avatar{position:absolute;top:67px;right:23px;width:33px;height:33px;border:0;background:transparent;padding:0}
+.avatar img{width:33px;height:33px;display:block}.card-zone{position:absolute;top:138px;left:0;width:390px;height:605px}.classify{position:absolute;z-index:8;left:50%;top:245px;transform:translate(-50%,-50%);font-size:12px;font-weight:400;letter-spacing:.02em;color:white;background:rgba(24,36,58,.28);backdrop-filter:blur(7px);border-radius:16px;padding:6px 11px;opacity:0;pointer-events:none;white-space:nowrap;transition:.08s linear}
+.classify.done,.classify.more{left:50%}.stack{position:absolute;width:342px;height:540px;border-radius:36px}
+.stack.back1{background:#94b7ff;transform:rotate(-2.38966deg);left:13px;top:13px}
+.stack.back2{background:#d6e6ff;transform:rotate(3.25408deg);left:40px;top:1px}.word-card{position:absolute;z-index:3;left:24px;top:10px;width:342px;height:540px;border-radius:36px;background:#4f80ff;border:0;padding:0;touch-action:none;cursor:grab;will-change:transform;box-shadow:none;color:#111827}.word-card.dragging{cursor:grabbing}.word-card.snap{transition:transform .25s cubic-bezier(.22,.8,.22,1),opacity .25s ease}.card-body{position:absolute;left:18px;right:16px;top:221px;text-align:left}.word-card .word{display:inline-block;font-size:48px;font-weight:600;letter-spacing:.05em;line-height:1}.word-card .pos{font-size:14px;margin-top:9px}.word-card .jp{font-size:22px;font-weight:600;margin:3px 0 0}.word-card .example{font-size:16px;font-weight:600;margin:5px 0 0;line-height:1.25;max-width:300px}
+.word-line{display:flex;align-items:center;gap:13px}
+.word-speaker{width:25px;height:25px;border:0;background:transparent;padding:0;display:grid;place-items:center;flex:0 0 auto}
+.word-speaker img{width:24px;height:23px;display:block}
+.word-speaker:active{transform:scale(.9)}
+@keyframes reveal{from{opacity:0;transform:translateY(3px)}to{opacity:1;transform:none}}
+.detail{background:var(--blue);color:#16233a}
+.detail-tap{position:absolute;left:0;right:0;top:48px;bottom:96px;border:0;background:transparent;z-index:1}
+.detail-wrap{position:absolute;z-index:2;left:24px;right:18px;top:72px;bottom:104px;pointer-events:none;overflow:auto;scrollbar-width:none}
+.detail-wrap::-webkit-scrollbar{display:none}
+.detail-wordline{display:flex;align-items:center;gap:12px;pointer-events:none}
+.detail .word{font-size:50px;font-weight:600;letter-spacing:.04em;line-height:1}
+.detail-speaker{width:24px;height:24px;border:0;background:transparent;padding:0;pointer-events:auto;display:grid;place-items:center}
+.detail-speaker img{width:23px;height:23px;display:block}
+.detail-block{margin-top:20px}
+.detail-block+.detail-block{margin-top:28px}
+.detail-meta{display:flex;align-items:baseline;gap:11px;margin-bottom:5px}
+.detail-meta .pos{font-size:11px;font-weight:400;color:#263650}
+.detail-meta .jp{font-size:20px;font-weight:600;margin:0}
+.detail-block .example{font-size:14px;line-height:1.28;font-weight:600;margin:0 0 4px}
+.detail-learning{font-size:10px;line-height:1.5;letter-spacing:.035em;margin:0;color:#15233a}
+.detail-translate{pointer-events:auto;margin-left:6px;border:0;background:transparent;color:rgba(255,255,255,.72);font-family:inherit;font-size:8px;font-weight:400;line-height:1;padding:0;vertical-align:baseline}
+.detail-translate:hover{color:#fff}
+.detail-cn{display:none;margin-left:6px;color:#fff;font-size:8.5px;line-height:1.4;letter-spacing:.01em;font-weight:400;animation:reveal .14s ease}
+.detail-cn.show{display:inline}
+.detail .hint{display:none}
+
+/* bottom nav — original Figma icons */
+.bottom-nav{position:absolute;z-index:25;left:0;right:0;bottom:0;height:94px;border-top:1px solid #bcc3cf;background:white;display:grid;grid-template-columns:repeat(4,1fr);padding:0 8px}
+.nav{border:0;background:transparent;display:grid;place-items:center;padding:0}
+.nav img{width:29px;height:29px;object-fit:contain;transform:translateY(4px);transition:.14s ease;opacity:.96}
+.nav.active img{transform:translateY(4px)}.nav[data-route="vocab"].active img{filter:none}
+.nav[data-route="notes"].active img{filter:brightness(0) saturate(100%) invert(85%) sepia(24%) saturate(822%) hue-rotate(108deg) brightness(94%) contrast(90%)}
+.nav[data-route="test"].active img{filter:brightness(0) saturate(100%) invert(91%) sepia(67%) saturate(980%) hue-rotate(342deg) brightness(103%) contrast(103%)}
+.nav[data-route="progress"].active img{filter:brightness(0) saturate(100%) invert(87%) sepia(36%) saturate(1300%) hue-rotate(287deg) brightness(101%) contrast(101%)}
+
+/* notes/test/progress/profile */
+.module-title{position:absolute;top:70px;left:24px;margin:0;font-size:30px;line-height:1.08;font-weight:400;letter-spacing:.005em;color:var(--inkStrong)}
+.module-profile{position:absolute;top:61px;right:23px;width:32px;height:32px;border:0;background:transparent;padding:0}
+.module-profile img{width:32px;height:32px;display:block}
+
+/* AI Notes — green */
+.notes-page{background:#fff}
+.notes-page .module-title{color:#1f2937}
+.note-card{position:absolute;top:126px;left:24px;width:342px;min-height:176px;max-height:205px;overflow:auto;border-radius:28px;background:var(--green2);padding:20px 20px 18px}
+.note-card h2{font-size:15px;font-weight:600;margin:0 0 9px}
+.note-card p{font-size:13px;line-height:1.5;margin:0;white-space:pre-line;font-weight:400}
+.suggests{position:absolute;top:312px;left:24px;right:24px;display:flex;gap:7px;overflow:auto;padding:2px 0 6px;scrollbar-width:none}
+.suggests::-webkit-scrollbar{display:none}
+.suggests button{flex:none;border:1px solid #D1D5DB;background:white;border-radius:15px;padding:7px 10px;font-size:11px;font-weight:400}
+.note-tools{position:absolute;top:358px;left:24px;right:24px;display:flex;gap:8px}
+.note-tools button{height:34px;border:0;border-radius:17px;padding:0 13px;font-size:11px;font-weight:600}
+.note-save{background:var(--greenStrong);color:#16372e}
+.note-pdf{background:#eef2f2;color:#33413f}
+.ask{position:absolute;left:24px;right:24px;bottom:114px;display:flex;gap:8px}
+.ask input{flex:1;height:46px;border:0;background:#f1f4f3;border-radius:23px;padding:0 16px;font-size:12px;outline:none}
+.ask button{width:46px;height:46px;border:0;border-radius:50%;background:var(--greenStrong);font-size:19px;font-weight:400}
+
+/* Test — yellow */
+.test-page{background:#fff}
+.test-title{position:absolute;top:70px;left:24px;margin:0;font-size:30px;line-height:1.08;font-weight:400;letter-spacing:.005em;color:var(--inkStrong)}
+.test-heart{position:absolute;top:64px;right:24px;width:38px;height:38px;border:0;background:transparent;padding:0;font-size:29px;line-height:1;color:var(--yellow);font-family:Arial,sans-serif;display:grid;place-items:center}
+.test-heart[data-fav="true"]{color:var(--yellow)}
+.quiz-card{position:absolute;top:137px;height:175px;border-radius:36px;background:var(--yellow);display:flex;align-items:center;justify-content:center;gap:10px;padding:0 26px}
+.quiz-card .word{font-size:44px;font-weight:600;letter-spacing:.06em;white-space:nowrap;color:var(--inkStrong)}
+.quiz-speaker{width:25px;height:25px;border:0;background:transparent;padding:0;display:grid;place-items:center}
+.quiz-speaker img{width:24px;height:24px}
+.answers{position:absolute;top:350px;left:24px;right:24px;display:flex;flex-wrap:wrap;gap:14px 10px;align-items:flex-start}
+.answer-wrap{display:inline-flex;flex-direction:column;align-items:center;gap:3px}
+.answers button{border:1px solid #111827;background:#fff;border-radius:16px;padding:7px 11px;font-size:20px;line-height:1.08;font-family:inherit;font-weight:400;color:#111827}
+.answers button.chosen.correct{background:var(--yellow2)}
+.answers button.chosen.wrong{background:#f4f4f5;color:#8b9098}
+.answer-correct{display:none}
+.test-classify{position:absolute;left:24px;right:24px;bottom:111px;display:flex;justify-content:space-between;align-items:center}
+.test-classify button{border:0;background:#F2F4F6;border-radius:16px;padding:7px 11px;font-size:10px;font-weight:400;color:#111827}
+.test-feedback{position:absolute;top:557px;left:0;right:0;text-align:center;font-size:20px;font-weight:400;color:#111827;animation:testPop .65s ease both}@keyframes testPop{0%{opacity:0;transform:translateY(4px)}18%,68%{opacity:1;transform:translateY(0)}100%{opacity:0}}18%,70%{opacity:1;transform:translateY(0)}100%{opacity:0}}.test-progress{position:absolute;left:24px;right:24px;top:610px;text-align:center;font-size:10px;color:#8a8f98;font-weight:400}
+
+/* Calendar / record — pink */
+.progress-page{background:#fff}
+.progress-title{position:absolute;top:70px;left:24px;margin:0;font-size:30px;line-height:1.08;font-weight:400;letter-spacing:.005em;color:var(--inkStrong)}
+.calendar{position:absolute;top:118px;left:24px;width:342px;height:314px;border:1px solid #111827;border-radius:24px;padding:15px 10px 12px;background:white}
+.calendar-grid{display:grid;grid-template-columns:repeat(7,1fr);grid-auto-rows:40px;gap:5px 4px}
+.day{position:relative;border:0;background:rgba(242,244,246,.68);border-radius:5px;color:#d9dde3;font-size:7px;padding:0;overflow:hidden}
+.day .date{position:absolute;left:4px;top:3px;font-size:6px;color:rgba(255,255,255,.72)}
+.day .count{font-size:18px;font-weight:600;color:#111827}
+.day.learned{background:var(--pink)}
+.day.strong{background:var(--pinkStrong)}
+.day.selected{box-shadow:inset 0 0 0 1.5px #111827}
+.calendar-bottom{position:absolute;left:9px;right:9px;bottom:8px}
+.month-row{display:flex;justify-content:flex-end;align-items:center;gap:8px;color:#9ca3af;font-size:10px;margin-bottom:9px}
+.month-row b{font-weight:400}
+.cal-nav{width:20px;height:20px;border:0;border-radius:50%;background:#f3f4f6;color:#a4a9b2;padding:0}
+.week{display:grid;grid-template-columns:repeat(7,1fr);font-size:8px;color:#a2a6ae;text-align:center}
+.cal-total{text-align:right;font-size:8px;color:#7b8290;margin-top:4px}
+.day-detail{position:absolute;top:442px;left:24px;right:24px;height:35px;display:flex;align-items:center;justify-content:space-between;padding:0 4px;color:#6b7280}
+.day-detail strong{font-size:11px;font-weight:600;color:#111827}
+.day-detail span{font-size:8px;line-height:1.35;text-align:right}
+.progress-lists{position:absolute;top:486px;left:24px;right:24px}
+.progress-lists h2{font-size:20px;font-weight:600;letter-spacing:0;margin:0 0 10px;color:#000}
+.progress-list-btn{width:100%;height:60px;border:1px solid #111827;border-radius:30px;background:white;text-align:left;padding:0 16px;font-size:20px;font-weight:400;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-bottom:20px}
+.progress-list-btn.more{border-color:var(--pinkStrong)}
+.progress-list-btn span{font-size:9px;color:#7b7180;margin-left:5px}
+.list-page{background:#fff}
+.list-page h1{position:absolute;top:67px;left:24px;font-size:24px;font-weight:600;letter-spacing:0;margin:0;color:#111827}
+.word-list{position:absolute;top:122px;left:20px;right:20px;bottom:104px;overflow:auto;display:grid;align-content:start;gap:12px}
+.word-row{height:54px;border:1px solid var(--pinkStrong);border-radius:27px;background:white;font-size:18px;font-weight:600}
+.word-row small{font-size:10px;font-weight:400;margin-left:5px}
+.record-detail{background:var(--pink2);color:#172033}
+.record-detail .record-wrap{position:absolute;top:102px;left:24px;right:24px;bottom:104px;overflow:auto}
+.record-detail .record-word{font-size:48px;font-weight:600;letter-spacing:.04em;margin:0 0 20px}
+.record-detail .record-block{margin-bottom:24px}
+.record-detail .record-meta{display:flex;gap:10px;align-items:baseline;margin-bottom:5px}
+.record-detail .record-meta span{font-size:10px}
+.record-detail .record-meta strong{font-size:19px;font-weight:600}
+.record-detail .record-block p{font-size:12px;line-height:1.45;margin:0 0 4px}
+
+/* My page */
+.profile-page{background:#fff}
+.profile-page .back{top:67px;left:20px;width:32px;height:32px}
+.profile-page .section-head{position:absolute;top:70px;left:64px;right:24px}
+.profile-page .section-head h1{font-size:28px;font-weight:400;line-height:1.05;margin:0;color:var(--inkStrong);letter-spacing:.005em}
+.profile-identity{position:absolute;top:126px;left:24px;right:24px;height:64px;display:flex;align-items:center;gap:12px}
+.profile-avatar{width:42px;height:42px;flex:0 0 42px;object-fit:contain}
+.profile-id-text{min-width:0}
+.profile-name{font-size:18px;font-weight:600;line-height:1.15;color:var(--inkStrong)}
+.profile-meta{font-size:11px;font-weight:400;color:var(--muted);margin-top:4px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.profile-section{position:absolute;left:24px;right:24px}
+.profile-section h2{font-size:16px;font-weight:600;margin:0 0 10px;color:var(--inkStrong)}
+.profile-favs{top:216px}
+.profile-notes{top:318px}
+.profile-chips{display:flex;flex-wrap:wrap;gap:8px}
+.profile-chip{border:0;border-radius:17px;padding:8px 13px;background:var(--yellow2);font-size:12px;font-weight:400;color:var(--inkStrong)}
+.profile-note{width:100%;height:45px;border:0;border-radius:18px;background:var(--green2);text-align:left;padding:0 14px;font-size:11px;font-weight:400;color:var(--inkStrong);margin-bottom:7px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.profile-actions{position:absolute;top:432px;left:24px;right:24px;display:grid;gap:9px}
+.profile-actions button{height:46px;border:0;border-radius:22px;text-align:left;padding:0 15px;font-size:13px;font-weight:600;color:var(--inkStrong)}
+.profile-actions button:nth-child(1){background:var(--blue3)}
+.profile-actions button:nth-child(2){background:var(--green2)}
+.profile-actions button:nth-child(3){background:var(--pink2)}
+.profile-actions button:nth-child(4){background:var(--soft)}
+
+.toast{position:absolute;z-index:50;left:50%;bottom:112px;transform:translateX(-50%);background:rgba(20,27,40,.9);color:white;border-radius:18px;padding:8px 14px;font-size:11px;animation:toast 1.25s ease both}@keyframes toast{0%{opacity:0;transform:translate(-50%,7px)}15%,75%{opacity:1;transform:translate(-50%,0)}100%{opacity:0;transform:translate(-50%,-4px)}}
+@media(prefers-reduced-motion:reduce){.blob,.dots i,.nav.active .ico{animation:none!important}.screen{animation:none}}
+html,body{background:#fff!important}</style>
+<style>.portfolio-guest{position:absolute;z-index:4;bottom:27px;left:0;width:100%;border:0;background:none;color:#fff;font-size:14px;text-decoration:underline;text-underline-offset:4px}.portfolio-guest:hover{opacity:.75}</style></head>
+<body>
+<main class="stage"><div id="app" class="app"></div></main>
+<script>
+const app=document.querySelector('#app'); const root=document.documentElement; const W=390,H=844;
+const state={
+  route:location.hash.slice(1)||'landing',
+  lang:{q3:'English',q4:'日本語',q5:'中文'},
+  book:0,
+  word:0,
+  classified:[],
+  listKind:'more',
+  recordWord:0,
+  note:'',
+  noteQuestion:'',
+  savedNotes:[],
+  testWord:0,
+  testSelections:[],
+  testHistory:[],
+  testFeedback:false,
+  favorites:[],
+  selectedDay:23
+};
+const words=[
+ {word:'light',pos:'adjective',jp:'軽い',ex:'I only carry a light bag, so I can move freely.',jpex:'自由に動けるように、軽いバッグだけを持っている。',cn:'我只带一个轻便的包，所以可以自由行动。',detail:[['adjective','軽い','I only carry a light bag, so I can move freely.','自由に動けるように、軽いバッグだけを持っている。'],['noun','光','The light from the window wakes me up every morning.','毎朝、窓からの光で目が覚める。'],['verb','照らす','Please light the candles on the cake.','ケーキのろうそくに火をつけてください。']]},
+ {word:'language',pos:'noun',jp:'言語',ex:'Language connects people across different cultures.',jpex:'言語は、異なる文化の人々をつなぐ。',cn:'语言连接着不同文化背景的人们。',detail:[['noun','言語','Language connects people across different cultures.','言語は、異なる文化の人々をつなぐ。'],['noun','表現','Visual language can be as strong as words.','視覚的な表現は言葉と同じくらい強くなれる。']]},
+ {word:'study',pos:'verb / noun',jp:'勉強する・学習',ex:'I study a little every day.',jpex:'毎日少しずつ勉強する。',cn:'我每天都会学习一点。',detail:[['verb','勉強する','I study a little every day.','毎日少しずつ勉強する。'],['noun','学習','This study changed the way I learn.','この学習で学び方が変わった。']]},
+ {word:'subtle',pos:'adjective',jp:'微妙な・繊細な',ex:'The difference is subtle, but important.',jpex:'違いは繊細だが、大切だ。',cn:'差异很细微，但很重要。',detail:[['adjective','微妙な・繊細な','The difference is subtle, but important.','違いは繊細だが、大切だ。']]},
+ {word:'vivid',pos:'adjective',jp:'鮮やかな',ex:'I still have a vivid memory of that day.',jpex:'あの日のことを今でも鮮明に覚えている。',cn:'我仍然清晰地记得那一天。',detail:[['adjective','鮮やかな','I still have a vivid memory of that day.','あの日のことを今でも鮮明に覚えている。']]},
+ {word:'flexible',pos:'adjective',jp:'柔軟な',ex:'A flexible plan is easier to continue.',jpex:'柔軟な計画のほうが続けやすい。',cn:'灵活的计划更容易坚持。',detail:[['adjective','柔軟な','A flexible plan is easier to continue.','柔軟な計画のほうが続けやすい。']]}
+];
+const detailCN={
+ light:['我只带一个轻便的包，这样就能自由行动。','每天早上，窗外的光都会把我唤醒。','请点亮蛋糕上的蜡烛。'],
+ language:['语言连接着不同文化背景的人。','视觉语言也可以像文字一样有力量。'],
+ study:['我每天都会学习一点。','这次学习改变了我的学习方式。'],
+ subtle:['差异很细微，但很重要。'],
+ vivid:['我仍然清晰地记得那一天。'],
+ flexible:['灵活的计划更容易坚持。']
+};
+const testBank={
+ light:{correct:['軽い','adjective','light up・輝かす','光','noun','照らす'],chips:['軽い','adjective','便利','light up・輝かす','軽くする','光','noun','照らす']},
+ language:{correct:['言語','noun','表現'],chips:['言語','noun','会話','表現','verb','翻訳']},
+ study:{correct:['勉強する','verb','学習','noun'],chips:['勉強する','verb','学校','学習','noun','adjective']}
+};
+const testWords=['light','language','study'];
+function classifyWord(word,kind){
+  state.classified=state.classified.filter(x=>x.word!==word);
+  state.classified.push({word,kind});
+}
+function currentTestWord(){return testWords[state.testWord%testWords.length]}
+function advanceTest(kind=null){
+  const word=currentTestWord();
+  if(kind) classifyWord(word,kind);
+  if(!state.testHistory.includes(word)) state.testHistory.push(word);
+  state.testWord=(state.testWord+1)%testWords.length;
+  state.testSelections=[];
+  render();
+}
+function exportNotesPDF(){
+  const rows=state.savedNotes.length?state.savedNotes:(state.note?[{q:state.noteQuestion||'AI note',text:state.note}]:[]);
+  const w=window.open('','_blank','width=760,height=860');
+  if(!w){toast('PDF window was blocked');return}
+  const body=rows.length?rows.map((n,i)=>`<section><h2>${i+1}. ${n.q}</h2><p>${n.text.replace(/\n/g,'<br>')}</p></section>`).join(''):'<p>No saved notes yet.</p>';
+  w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Light Language Notes</title><style>body{font-family:Arial,"Yu Gothic",sans-serif;padding:44px;color:#1f2937}h1{font-size:24px}h2{font-size:15px;margin-top:28px}p{font-size:12px;line-height:1.7}@media print{button{display:none}}</style></head><body><h1>Light Language — Notes</h1>${body}<button onclick="window.print()">Save as PDF</button></body></html>`);
+  w.document.close();
+  setTimeout(()=>w.focus(),100);
+}
+
+function fit(){const m=innerWidth>480?28:0;root.style.setProperty('--scale',Math.max(.2,Math.min(1,innerWidth/W,(innerHeight-m*2)/H)))}addEventListener('resize',fit);fit();
+function status(dark=false){return `<div class="status" style="color:${dark?'#fff':'#111'}"><span class="time">9:41</span><div class="icons"><span>▮▮▮</span><span>⌁</span><span class="battery"></span></div></div>`}
+function field(){return `<div class="color-field" aria-hidden="true"><i class="blob b1"></i><i class="blob b2"></i><i class="blob b3"></i><i class="blob b4"></i><i class="blob b5"></i></div>`}
+function back(to='landing'){return `<button class="back" data-route="${to}" aria-label="Back"></button>`}
+function next(to,disabled=false,label='NEXT'){return `<button class="next-frame" data-route="${to}" ${disabled?'disabled':''}>${label}</button>`}
+const NAV_ICONS={vocab:'assets/svg/vector-0001.svg',notes:'assets/svg/vector-0002.svg',test:'assets/svg/vector-0003.svg',progress:'assets/svg/vector-0004.svg'};
+function nav(active){const items=['vocab','notes','test','progress'];return `<nav class="bottom-nav">${items.map(r=>`<button class="nav ${active===r?'active':''}" data-route="${r}" aria-label="${r}"><img src="${NAV_ICONS[r]}" alt=""></button>`).join('')}</nav>`}
+function landing(){return `<section class="screen landing">${field()}<svg class="landing-logo-svg" viewBox="120 205 155 125" aria-label="Light Language logo"><path d="M212.368 324.762C207.898 324.93 203.444 324.147 199.298 322.466C195.153 320.785 191.411 318.244 188.32 315.009C185.972 312.406 183.902 309.564 182.146 306.53C177.617 308.132 172.809 308.791 168.016 308.464C163.224 308.138 158.549 306.835 154.279 304.633C145.304 299.685 138.042 292.127 133.454 282.961C128.04 272.575 124.631 261.261 123.407 249.611C120.834 227.288 131.125 217.156 135.675 213.824C139.077 211.228 143.097 209.565 147.338 209C151.58 208.435 155.895 208.986 159.858 210.6C169.634 214.989 175.375 226.15 176.702 240.156C178.118 256.99 181.92 273.537 187.995 289.3C193.411 285.995 199.532 281.66 205.544 277.434C212.812 272.082 220.37 267.135 228.183 262.615C247.384 252.402 262.576 257.495 269.238 267.221C275.44 276.377 275.007 291.305 260.031 304.065C249.41 313.469 236.671 320.161 222.903 323.57C219.445 324.351 215.913 324.751 212.368 324.762ZM193.763 300.841C194.889 302.773 196.205 304.588 197.69 306.259C203.756 312.842 213.235 312.463 220.113 311C231.781 307.974 242.572 302.238 251.609 294.258C258.027 288.839 262.631 280.549 258.514 274.481C255.292 269.74 246.328 267.546 234.277 273.966C226.95 278.273 219.846 282.948 212.991 287.972C206.437 292.713 199.694 297.319 193.763 300.841ZM149.73 222.032C147.392 222.046 145.122 222.816 143.257 224.227C137.597 228.372 134.943 237.312 136.189 248.148C138.681 269.821 147.807 286.943 160.02 293.174C165.038 295.743 170.837 296.333 176.269 294.826C169.738 277.607 165.575 259.58 163.893 241.24C162.647 228.101 156.527 224.01 153.954 222.845C152.619 222.279 151.179 222.002 149.73 222.032Z" fill="white"/></svg><div class="tagline">Light the language.</div><div class="landing-actions"><button class="pill signin" data-route="signin">sign in</button><button class="pill signup" data-route="signup">create account</button></div><button class="portfolio-guest" data-route="vocab">continue as guest</button></section>`}
+function auth(mode){const sign=mode==='signup';return `<section class="screen auth ${sign?'signup':''}"><div class="auth-hero">${field()}<div class="auth-copy">Light your study.</div></div>${back('landing')}<div class="auth-sheet"><h1 class="auth-title">${sign?'create account':'sign in'}</h1><div class="fields">${sign?'<input class="field" placeholder="name" autocomplete="name">':''}<input class="field" placeholder="email" type="email" autocomplete="email"><input class="field" placeholder="password" type="password" autocomplete="current-password"></div><div class="small-row">${sign?'':'<button class="textbtn" data-demo="forgot">forgot password?</button>'}</div><button class="auth-primary" data-route="q1">${sign?'create account':'sign in'}</button><div class="divider">or</div><button class="auth-secondary" data-route="vocab">continue as guest</button><p class="switch">${sign?'Already have an account? <button data-route="signin">sign in</button>':'New here? <button data-route="signup">create account</button>'}</p></div></section>`}
+function q1(){return `<section class="screen">${status()}${back('signin')}<div class="intro-center"><h1 class="intro-title">Ready to begin?</h1><p class="intro-copy">Just a few quick questions<br>to make this all yours.</p></div><button class="bottom-action" data-route="q2">OK</button></section>`}
+function q2(){return `<section class="screen">${status()}${back('q1')}<div class="explain"><h1>This app is built for multilingual learners.</h1><p>Combine three languages and decide what role each one plays while you study.</p><div class="explain-list"><div class="explain-chip blue">Language you want to learn.</div><div class="explain-chip green">Language you use to learn.</div><div class="explain-chip yellow">Language for hidden translations.</div></div></div><button class="bottom-action" data-route="q3">OK</button></section>`}
+const langCfg={q3:['What is the language that you want to learn?','q4'],q4:['Which language do you want to use to learn it?','q5'],q5:['What language do you want for hidden translations?','setting']};
+function selectScreen(step){const [title,to]=langCfg[step],langs=['English','日本語','한국어','中文','Français','Español','Deutsch'];return `<section class="screen select-screen" data-step="${step}">${status()}${back(step==='q3'?'q2':step==='q4'?'q3':'q4')}<h1>${title}</h1><div class="language-list">${langs.map(l=>`<button class="language-option" data-lang="${l}" data-step="${step}" data-next="${to}" data-selected="${state.lang[step]===l}">${l}</button>`).join('')}</div></section>`}
+function setting(){setTimeout(()=>{if(state.route==='setting')go('books')},1300);return `<section class="screen setting">${field()}${status(true)}<div class="center"><h1>Setting up...</h1><p>${state.lang.q3||'English'} × ${state.lang.q4||'日本語'} × ${state.lang.q5||'中文'}<br>Your language preferences are loading.</p><div class="dots"><i></i><i></i><i></i></div></div></section>`}
+const bookGroups=[
+ {title:'おすすめ',items:[['Everyday'],['Design Words'],['Travel'],['Conversation'],['Daily 500'],['Starter']]},
+ {title:'アイエルツ',items:[['IELTS 5.5'],['IELTS 6.5'],['Academic'],['Speaking'],['Writing'],['Vocabulary']]},
+ {title:'TOEIC',items:[['TOEIC 600'],['TOEIC 700'],['TOEIC 800'],['Business'],['Listening'],['Reading']]}
+];
+function bookScreen(){let idx=0;const groups=bookGroups.map(g=>`<section class="book-section"><h2>${g.title}</h2><div class="book-row">${g.items.map(b=>{const i=idx++;return `<button class="book" data-book="${i}" data-selected="${state.book===i}"><div class="cover"><span class="tiny">LL</span><strong>${b[0]}</strong><small>LIGHT LANGUAGE</small></div></button>`}).join('')}</div></section>`).join('');return `<section class="screen books">${status()}${back('q5')}<div class="book-title">学習したい単語帳を選んでください</div><div class="book-sections">${groups}</div>${next('vocab',state.book===null,'GO ON')}</section>`}
+function cardScreen(){const w=words[state.word];return `<section class="screen home">${status()}<h1 class="home-title">user name</h1><button class="avatar" data-route="profile" aria-label="Profile"><img src="assets/svg/vector-0005.svg" alt=""></button><div class="card-zone"><div class="stack back1"></div><div class="stack back2"></div><div class="classify done">完全記憶済み</div><div class="classify more">もっと学ぶ</div><article class="word-card" tabindex="0" aria-label="${w.word} word card"><div class="card-body"><div class="word-line"><div class="word">${w.word}</div><button class="word-speaker" data-speak aria-label="Play pronunciation"><img src="assets/svg/vector-0006.svg" alt=""></button></div><div class="pos">·${w.pos}</div><p class="jp">${w.jp}</p><p class="example">${w.ex}</p></div></article></div>${nav('vocab')}</section>`}
+function detail(){const w=words[state.word],cn=detailCN[w.word]||[];const showTranslation=(state.lang.q4||'日本語')!==(state.lang.q5||'中文');return `<section class="screen detail">${status(true)}<button class="detail-tap" data-route="vocab" aria-label="Back to cards"></button><div class="detail-wrap"><div class="detail-wordline"><span class="word">${w.word}</span><button class="detail-speaker" data-detail-speak aria-label="Play pronunciation"><img src="assets/svg/vector-0006.svg" alt=""></button></div>${w.detail.map((d,i)=>`<section class="detail-block"><div class="detail-meta"><span class="pos">${d[0]}</span><p class="jp">${d[1]}</p></div><p class="example">${d[2]}</p><p class="detail-learning">${d[3]}${showTranslation?`<button class="detail-translate" data-detail-translate="${i}">翻訳</button><span class="detail-cn" data-detail-cn="${i}">${cn[i]||''}</span>`:''}</p></section>`).join('')}</div>${nav('vocab')}</section>`}
+
+function notes(){return `<section class="screen notes-page">${status()}<h1 class="module-title">AI notes</h1><button class="module-profile" data-route="profile" aria-label="My page"><img src="assets/svg/vector-0005.svg" alt=""></button><div class="note-card"><h2>${state.note?'Your note':'Try asking something.'}</h2><p>${state.note||'気になった単語や表現を、そのまま質問してみましょう。\nAIが短く整理して、あとからノートとして保存できます。'}</p></div><div class="suggests"><button data-suggest="light と bright の違いは？">light / bright</button><button data-suggest="study の自然な使い方は？">study の使い方</button><button data-suggest="language の例文を3つ">例文を3つ</button></div><div class="note-tools"><button class="note-save" data-save-note>save note</button><button class="note-pdf" data-export-notes>export PDF</button></div><div class="ask"><input id="ask" placeholder="AIに質問する"><button data-generate>＋</button></div>${nav('notes')}</section>`}
+
+function test(){const word=currentTestWord(),bank=testBank[word],fav=state.favorites.includes(word);const selected=state.testSelections;const cardW=Math.max(180,Math.min(320,120+word.length*19));const cardLeft=(390-cardW)/2;return `<section class="screen test-page">${status()}<h1 class="test-title">test</h1><button class="test-heart" data-favorite="${word}" data-fav="${fav}" aria-label="favorite">${fav?'♥':'♡'}</button><div class="quiz-card" style="width:${cardW}px;left:${cardLeft}px"><span class="word">${word}</span><button class="quiz-speaker" data-test-speak aria-label="Play pronunciation"><img src="assets/svg/vector-0006.svg" alt=""></button></div><div class="answers">${bank.chips.map(o=>{const chosen=selected.includes(o),correct=bank.correct.includes(o);return `<span class="answer-wrap"><button data-test-chip="${o}" class="${chosen?'chosen ':''}${chosen?(correct?'correct':'wrong'):''}">${o}</button></span>`}).join('')}</div>${state.testFeedback?'<div class="test-feedback">正解！</div>':''}<div class="test-progress">${selected.filter(x=>bank.correct.includes(x)).length} / ${bank.correct.length}</div><div class="test-classify"><button data-test-classify="more">もっと学ぶ</button><button data-test-classify="done">完全記憶済み</button></div>${nav('test')}</section>`}
+function categoryWords(kind){const chosen=state.classified.filter(x=>x.kind===kind).map(x=>x.word);const seed=kind==='more'?['light','subtle','vivid','flexible']:['language','study'];return [...new Set(chosen.length?chosen:seed)]}
+function progress(){const more=categoryWords('more'),done=categoryWords('done');const today=23;const learnedDays=[6,9,10,15,17,21,23,29,30],strongDays=[13,18,24];const counts={6:68,9:34,10:48,13:18,15:40,17:21,18:37,21:36,23:36,24:12,29:40,30:69};const days=Array.from({length:35},(_,i)=>{const n=i+1;if(n>31)return `<button class="day" disabled></button>`;const cls=learnedDays.includes(n)?'learned':(strongDays.includes(n)?'strong':'');return `<button class="day ${cls} ${state.selectedDay===n?'selected':''}" data-day="${n}"><span class="date">${n}</span>${counts[n]?`<span class="count">${counts[n]}</span>`:''}</button>`}).join('');const selected=state.selectedDay||today;let rec;if(selected===today){const learned=new Set([...state.testHistory,...state.classified.map(x=>x.word)]);rec={learned:learned.size||3,more:categoryWords('more').length,done:categoryWords('done').length,test:state.testHistory.length||2}}else{rec={learned:(selected%5)+2,more:(selected%3)+1,done:selected%4,test:selected%3}}return `<section class="screen progress-page">${status()}<h1 class="progress-title">calendar</h1><div class="calendar"><div class="calendar-grid">${days}</div><div class="calendar-bottom"><div class="month-row"><b>2026年9月</b><button class="cal-nav">‹</button><button class="cal-nav">›</button></div><div class="week"><span>一</span><span>二</span><span>三</span><span>四</span><span>五</span><span>六</span><span>日</span></div><div class="cal-total">357/1683</div></div></div><div class="day-detail"><strong>9 / ${selected}</strong><span>学習 ${rec.learned} words　もっと学ぶ ${rec.more}　完全記憶 ${rec.done}</span></div><div class="progress-lists"><h2>「もっと学ぶ」リスト</h2><button class="progress-list-btn more" data-list="more">${more.join('、')} <span>${more.length} words</span></button><h2>「完全記憶済み」リスト</h2><button class="progress-list-btn" data-list="done">${done.join('、')} <span>${done.length} words</span></button></div>${nav('progress')}</section>`}
+function progressList(){const kind=state.listKind,arr=categoryWords(kind);const title=kind==='more'?'「もっと学ぶ」リスト':'「完全記憶済み」リスト';return `<section class="screen list-page">${status()}<h1>${title}</h1><div class="word-list">${arr.map(w=>{const i=words.findIndex(x=>x.word===w),x=words[i]||words[0];return `<button class="word-row" data-record-word="${i<0?0:i}">${x.word}<small>${x.jp}</small></button>`}).join('')}</div>${nav('progress')}</section>`}
+function recordDetail(){const w=words[state.recordWord]||words[0];return `<section class="screen record-detail">${status()}${back('progress-list')}<div class="record-wrap"><h1 class="record-word">${w.word}</h1>${w.detail.map(d=>`<section class="record-block"><div class="record-meta"><span>${d[0]}</span><strong>${d[1]}</strong></div><p>${d[2]}</p><p>${d[3]}</p></section>`).join('')}</div>${nav('progress')}</section>`}
+
+function profile(){const favs=state.favorites.length?state.favorites:['light'];const notes=state.savedNotes.length?state.savedNotes:(state.note?[{q:state.noteQuestion||'AI note',text:state.note}]:[]);const learn=state.lang.q3||'English',via=state.lang.q4||'日本語',hidden=state.lang.q5||'中文';return `<section class="screen profile-page">${status()}${back('vocab')}<div class="section-head"><h1>my page</h1></div><div class="profile-identity"><img class="profile-avatar" src="assets/svg/vector-0005.svg" alt=""><div class="profile-id-text"><div class="profile-name">user name</div><div class="profile-meta">${learn} through ${via}${via!==hidden?` · ${hidden} translation`:''}</div></div></div><section class="profile-section profile-favs"><h2>favorites</h2><div class="profile-chips">${favs.map(w=>`<button class="profile-chip" data-profile-word="${w}">${w}</button>`).join('')}</div></section><section class="profile-section profile-notes"><h2>saved AI notes</h2>${notes.length?notes.slice(-3).map((n,i)=>`<button class="profile-note" data-profile-note="${i}">${n.q}</button>`).join(''):'<div class="profile-meta">まだ保存されたノートはありません。</div>'}</section><div class="profile-actions"><button data-route="books">単語帳</button><button data-route="notes">AI notes</button><button data-export-notes>notes を PDF に整理</button><button data-route="q3">言語設定</button></div></section>`}
+const routes={landing,signin:()=>auth('signin'),signup:()=>auth('signup'),q1,q2,q3:()=>selectScreen('q3'),q4:()=>selectScreen('q4'),q5:()=>selectScreen('q5'),setting,books:bookScreen,vocab:cardScreen,detail,notes,test,progress,'progress-list':progressList,'record-detail':recordDetail,profile};
+function render(){app.innerHTML=(routes[state.route]||landing)();bind()}
+function go(r){state.route=r;try{history.pushState({r},'',`#${r}`)}catch(error){}render()}
+function toast(t){document.querySelector('.toast')?.remove();const d=document.createElement('div');d.className='toast';d.textContent=t;app.append(d);setTimeout(()=>d.remove(),1300)}
+function bind(){
+ app.querySelectorAll('[data-route]').forEach(el=>el.addEventListener('click',e=>{e.stopPropagation();if(!el.disabled)go(el.dataset.route)}));
+ app.querySelectorAll('.language-option').forEach(el=>el.addEventListener('click',()=>{
+   state.lang[el.dataset.step]=el.dataset.lang;
+   const nextRoute=el.dataset.next;
+   render();
+   setTimeout(()=>{ if(state.route===el.dataset.step) go(nextRoute); },260);
+ }));
+ app.querySelectorAll('[data-book]').forEach(el=>el.addEventListener('click',()=>{state.book=+el.dataset.book;render()}));
+ app.querySelector('[data-speak]')?.addEventListener('click',e=>{e.stopPropagation();const w=words[state.word].word;if('speechSynthesis' in window){speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(w);u.lang='en-US';u.rate=.85;speechSynthesis.speak(u)}});
+ app.querySelector('[data-detail-speak]')?.addEventListener('click',e=>{e.stopPropagation();const w=words[state.word].word;if('speechSynthesis' in window){speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(w);u.lang='en-US';u.rate=.85;speechSynthesis.speak(u)}});
+ app.querySelectorAll('[data-detail-translate]').forEach(b=>b.addEventListener('click',e=>{e.stopPropagation();const p=app.querySelector(`[data-detail-cn="${b.dataset.detailTranslate}"]`);p?.classList.toggle('show')}));
+ app.querySelector('[data-test-speak]')?.addEventListener('click',e=>{e.stopPropagation();if('speechSynthesis' in window){speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(currentTestWord());u.lang='en-US';u.rate=.85;speechSynthesis.speak(u)}});
+ const card=app.querySelector('.word-card'); if(card){let sx=0,x=0,drag=false,moved=false;const done=app.querySelector('.classify.done'),more=app.querySelector('.classify.more');
+  card.addEventListener('pointerdown',e=>{if(e.target.closest('[data-speak]'))return;drag=true;moved=false;sx=e.clientX;card.setPointerCapture(e.pointerId);card.classList.add('dragging')});
+  card.addEventListener('pointermove',e=>{if(!drag)return;x=e.clientX-sx;if(Math.abs(x)>4)moved=true;card.style.transform=`translateX(${x}px) rotate(${x/22}deg)`;done.style.opacity=x<0?Math.min(1,Math.abs(x)/90):0;more.style.opacity=x>0?Math.min(1,Math.abs(x)/90):0});
+  const up=()=>{if(!drag)return;drag=false;card.classList.remove('dragging');if(Math.abs(x)>95){card.classList.add('snap');card.style.opacity='0';card.style.transform=`translateX(${x>0?430:-430}px) rotate(${x>0?16:-16}deg)`;classifyWord(words[state.word].word,x>0?'more':'done');setTimeout(()=>{state.word=(state.word+1)%words.length;render()},230)}else{card.classList.add('snap');card.style.transform='translateX(0) rotate(0)';done.style.opacity=more.style.opacity=0;if(!moved)go('detail');setTimeout(()=>card?.classList.remove('snap'),260)}x=0};card.addEventListener('pointerup',up);card.addEventListener('pointercancel',up);card.addEventListener('keydown',e=>{if(e.key==='Enter')go('detail')});}
+ app.querySelectorAll('[data-list]').forEach(b=>b.addEventListener('click',()=>{state.listKind=b.dataset.list;go('progress-list')}));
+ app.querySelectorAll('[data-record-word]').forEach(b=>b.addEventListener('click',()=>{state.recordWord=+b.dataset.recordWord;go('record-detail')}));
+ app.querySelectorAll('[data-suggest]').forEach(b=>b.addEventListener('click',()=>{const i=app.querySelector('#ask');if(i)i.value=b.dataset.suggest}));
+ app.querySelector('[data-generate]')?.addEventListener('click',()=>{const q=app.querySelector('#ask')?.value?.trim()||'light と bright の違いは？';state.noteQuestion=q;state.note=`${q}\n\nlight は「軽い／光」、bright は「明るい・鮮やか」というニュアンスです。例文と一緒に覚えると区別しやすくなります。`;render()});
+
+ app.querySelectorAll('[data-test-chip]').forEach(b=>b.addEventListener('click',()=>{
+   const word=currentTestWord(),bank=testBank[word],v=b.dataset.testChip;
+   const wasSelected=state.testSelections.includes(v);
+   if(wasSelected) state.testSelections=state.testSelections.filter(x=>x!==v);
+   else state.testSelections=[...state.testSelections,v];
+   const isCorrect=!wasSelected && bank.correct.includes(v);
+   const allCorrect=bank.correct.every(x=>state.testSelections.includes(x));
+   state.testFeedback=isCorrect;
+   render();
+   if(isCorrect){
+     const wordAtClick=word;
+     setTimeout(()=>{
+       if(state.route!=='test' || currentTestWord()!==wordAtClick) return;
+       state.testFeedback=false;
+       if(allCorrect) advanceTest();
+       else render();
+     },650);
+   }
+ }));
+ app.querySelectorAll('[data-test-classify]').forEach(b=>b.addEventListener('click',()=>advanceTest(b.dataset.testClassify)));
+ app.querySelector('[data-favorite]')?.addEventListener('click',()=>{
+   const w=currentTestWord();
+   state.favorites=state.favorites.includes(w)?state.favorites.filter(x=>x!==w):[...state.favorites,w];
+   render();
+ });
+ app.querySelectorAll('[data-day]').forEach(b=>b.addEventListener('click',()=>{state.selectedDay=+b.dataset.day;render()}));
+ app.querySelector('[data-save-note]')?.addEventListener('click',()=>{
+   if(!state.note){toast('先に AI note を作成してください');return}
+   state.savedNotes.push({q:state.noteQuestion||'AI note',text:state.note});
+   toast('note saved');
+ });
+ app.querySelectorAll('[data-export-notes]').forEach(b=>b.addEventListener('click',()=>exportNotesPDF()));
+ app.querySelectorAll('[data-profile-word]').forEach(b=>b.addEventListener('click',()=>{
+   const i=words.findIndex(x=>x.word===b.dataset.profileWord);
+   if(i>=0){state.word=i;go('detail')}
+ }));
+ app.querySelectorAll('[data-profile-note]').forEach(b=>b.addEventListener('click',()=>{
+   const notes=state.savedNotes.length?state.savedNotes:(state.note?[{q:state.noteQuestion||'AI note',text:state.note}]:[]);
+   const n=notes[+b.dataset.profileNote];
+   if(n){state.noteQuestion=n.q;state.note=n.text;go('notes')}
+ }));
+
+ app.querySelectorAll('[data-demo]').forEach(b=>b.addEventListener('click',()=>toast('demo interaction')));
+}
+addEventListener('popstate',()=>{state.route=location.hash.slice(1)||'landing';render()});
+render();
+</script>
+</body></html>

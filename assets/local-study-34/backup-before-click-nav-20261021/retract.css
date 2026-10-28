@@ -1,0 +1,46 @@
+/* Local trial: one retracting navigation, introductory copy, unobstructed work. */
+.topnav{background:transparent!important;border:0!important;backdrop-filter:none!important;-webkit-backdrop-filter:none!important;transform:translateY(-110%)!important;transition:transform .4s cubic-bezier(.22,.7,.3,1)!important}
+body.e35-nav-open .topnav,.topnav:focus-within{transform:translateY(0)!important}
+.e35-top-edge{position:fixed;inset:0 0 auto;height:12px;z-index:101;background:transparent}
+body.e35-nav-open .e35-top-edge{pointer-events:none}
+body:is(.is-landing,.about-intro-pending) .e35-top-edge{pointer-events:none}
+#projects :is(.project-head,.portfolio-head){background:transparent!important;box-shadow:none!important;backdrop-filter:none!important}
+#projects .e27-floor,#projects .e27-vegetaria>.vegetaria-v78-visuals{clip-path:none!important}
+#projects .e27-board{top:0!important;height:100vh!important;height:100svh!important}
+#projects .e27-vegetaria .vegetaria-stage-v78{perspective:none!important}
+#projects .e27-vegetaria .veg-item-v78{transition:none!important}
+@media(prefers-reduced-motion:reduce){.topnav{transition:none!important}}
+
+/* Home keeps its white navigation; project copy follows the same top offset. */
+@property --e35-nav-offset{syntax:'<length>';inherits:true;initial-value:0px}
+body{--e35-nav-offset:0px;transition:--e35-nav-offset .4s cubic-bezier(.22,.7,.3,1)}
+body.e35-nav-open,body.e35-home{--e35-nav-offset:60px}
+body.e35-home .topnav{background:#fff!important;transform:translateY(0)!important}
+body:is(.is-landing,.about-intro-pending) .topnav{transform:translateY(-110%)!important}
+body.e35-home .e35-top-edge{pointer-events:none}
+#projects .e27-panel{top:calc(var(--head-space) + var(--e35-nav-offset))!important}
+#projects :is(.e27-reader,.e27-books){top:calc(var(--reader-space,20px) + var(--e35-nav-offset))!important}
+#uiux .app-scroll-stage-v100{translate:0 calc(var(--e35-nav-offset) - 60px);height:calc(100svh - var(--e35-nav-offset))!important}
+#uiux .app-scroll-stage-v100 .app-scroll-panel-v100.e15-phone>.app-scroll-source-v100{top:50%!important}
+@media(prefers-reduced-motion:reduce){body{transition:none!important}}
+
+/* Fixed navigation is the stable frame; only project introductions leave. */
+body{--e35-nav-offset:60px!important}
+.topnav{background:#fff!important;border-bottom:1px solid #e8e8e8!important;transform:none!important;transition:none!important}
+body:is(.is-landing,.about-intro-pending) .topnav{transform:translateY(-110%)!important}
+.e35-top-edge,.e16-page-head{display:none!important}
+#uiux .app-scroll-stage-v100{translate:none!important;height:calc(100svh - 60px)!important}
+.e21-suu-panel>.app-scroll-source-v100{top:50%!important}
+/* Restore the original slim monitor, retaining the corrected 16:9 screen. */
+#uiux .suu-computer-v96{aspect-ratio:auto!important;padding:10px 10px 18px!important;background:#171717!important;border-radius:14px!important;overflow:hidden!important}
+#uiux .suu-screen-v96{position:relative!important;inset:auto!important;width:100%!important;height:auto!important;aspect-ratio:16/9!important;border:1px solid #303030!important;border-radius:5px!important;box-sizing:border-box}
+@media(min-width:681px){#uiux .suu-web-demo-v96{width:min(750px,60vw)!important;max-width:calc(100vw - 64px)!important}}
+
+.local-veg-photo{position:fixed;z-index:90;pointer-events:none;opacity:0;visibility:hidden;transform:translateY(6px) scale(.97);transition:opacity .18s ease,transform .24s ease,visibility .18s;overflow:hidden}
+.local-veg-photo.is-visible{opacity:1;visibility:visible;transform:none}
+.local-veg-photo>img{display:block;width:100%;height:100%;object-fit:contain}
+.vegetaria-lightbox-v78{display:none!important}
+@media(prefers-reduced-motion:reduce){.local-veg-photo{transition:none}}
+/* The photograph must never intercept the object's hover target. */
+.local-veg-photo,.local-veg-photo *{pointer-events:none!important}
+.vegetaria-stage-v78{-webkit-user-select:none;user-select:none}

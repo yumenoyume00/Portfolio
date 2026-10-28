@@ -1,0 +1,902 @@
+{
+  "vegetaria": {
+    "label": "VEGETARIA DAIKANYAMA",
+    "category": "BRANDING",
+    "images": [
+      {
+        "src": "/Portfolio/assets/web/assets/images/image-0042.webp",
+        "name": "Smoothies",
+        "width": 2400,
+        "height": 1600
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/image-0044.webp",
+        "name": "Juice",
+        "width": 2400,
+        "height": 1600
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/image-0046.webp",
+        "name": "Salad",
+        "width": 1600,
+        "height": 2400
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/image-0048.webp",
+        "name": "Vegetable packaging",
+        "width": 2400,
+        "height": 1600
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/image-0050.webp",
+        "name": "Stickers",
+        "width": 2400,
+        "height": 1600
+      },
+      {
+        "src": "/Portfolio/room-content/integration-assets/vegetaria-photos/cards-horizontal.webp",
+        "name": "Printed cards / horizontal",
+        "width": 804,
+        "height": 1070
+      },
+      {
+        "src": "/Portfolio/room-content/integration-assets/vegetaria-photos/cards-vertical.webp",
+        "name": "Printed cards / vertical",
+        "width": 812,
+        "height": 1082
+      },
+      {
+        "src": "/Portfolio/room-content/integration-assets/vegetaria-photos/tote-worn.webp",
+        "name": "Tote bag",
+        "width": 900,
+        "height": 1200
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/image-0062.webp",
+        "name": "Totes",
+        "width": 2400,
+        "height": 1706
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/image-0064.webp",
+        "name": "Apron",
+        "width": 2400,
+        "height": 1600
+      }
+    ]
+  },
+  "hozzz": {
+    "label": "hozzz",
+    "category": "BRANDING",
+    "images": [
+      {
+        "src": "/Portfolio/assets/web/assets/images/hozzz-carousel-01.webp",
+        "name": "hozzz Grotesque ZM alphabet and numerals",
+        "width": 1920,
+        "height": 1080
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/hozzz-carousel-02.webp",
+        "name": "hozzz icon system",
+        "width": 1920,
+        "height": 1080
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/hozzz-carousel-03.webp",
+        "name": "hozzz business card system",
+        "width": 1920,
+        "height": 1080
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/hozzz-carousel-04.webp",
+        "name": "hozzz envelope and letterhead system",
+        "width": 1920,
+        "height": 1080
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/hozzz-carousel-05.webp",
+        "name": "hozzz toiletries system",
+        "width": 1920,
+        "height": 1080
+      }
+    ]
+  },
+  "aota": {
+    "label": "aota",
+    "category": "BRANDING",
+    "images": [
+      {
+        "src": "/Portfolio/assets/web/assets/images/aota-showcase-01.webp",
+        "name": "Packaging collection",
+        "width": 2560,
+        "height": 1440
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/aota-showcase-02.webp",
+        "name": "Tart packaging",
+        "width": 1707,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/aota-showcase-04.webp",
+        "name": "Menu",
+        "width": 2560,
+        "height": 1707
+      }
+    ]
+  },
+  "walter": {
+    "label": "Walter Porstmann",
+    "category": "TYPOGRAPHY / BRANDING",
+    "images": [
+      {
+        "src": "/Portfolio/assets/update-20261014/wp-opening.webp",
+        "name": "Love and Peace",
+        "width": 1529,
+        "height": 1070
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/image-0075.webp",
+        "name": "Walter Porstmann modular alphabet and symbol system",
+        "width": 2400,
+        "height": 1858
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/image-0076.webp",
+        "name": "Studio photograph of staff passes",
+        "width": 2400,
+        "height": 1800
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/image-0077.webp",
+        "name": "Studio photograph of circular playing cards",
+        "width": 1650,
+        "height": 2200
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/image-0078.webp",
+        "name": "Studio photograph of graphic stickers",
+        "width": 1650,
+        "height": 2200
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/image-0079.webp",
+        "name": "Studio photograph of the graphic box system",
+        "width": 1650,
+        "height": 2200
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/image-0082.webp",
+        "name": "Badges worn on a grey garment",
+        "width": 1800,
+        "height": 2400
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/image-0083.webp",
+        "name": "Single badge photographed with a styled garment",
+        "width": 1800,
+        "height": 2400
+      }
+    ]
+  },
+  "suu": {
+    "label": "SUU",
+    "category": "WEB / BRANDING",
+    "images": [
+      {
+        "src": "/Portfolio/images/room/desktop/suu-products.webp",
+        "name": "Product collection",
+        "width": 2528,
+        "height": 1696
+      },
+      {
+        "src": "/Portfolio/images/room/desktop/suu-natural-care.webp",
+        "name": "Natural care",
+        "width": 2880,
+        "height": 1580
+      },
+      {
+        "src": "/Portfolio/images/room/desktop/suu-web-devices.webp",
+        "name": "Web design",
+        "width": 2436,
+        "height": 1370
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/image-0038.webp",
+        "name": "SUU home page",
+        "width": 652,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/image-0039.webp",
+        "name": "SUU product listing",
+        "width": 1136,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/image-0040.webp",
+        "name": "SUU product detail",
+        "width": 1440,
+        "height": 2400
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/image-0041.webp",
+        "name": "SUU brand page",
+        "width": 845,
+        "height": 2560
+      }
+    ]
+  },
+  "graphic": {
+    "label": "Graphic",
+    "category": "GRAPHIC / PACKAGING",
+    "images": [
+      {
+        "src": "/Portfolio/assets/web/assets/images/image-0084.webp",
+        "name": "MUJI summer poster",
+        "width": 2200,
+        "height": 1237
+      },
+      {
+        "src": "/Portfolio/assets/update-20261014/chocolate.webp",
+        "name": "Chocolate packaging range",
+        "width": 2560,
+        "height": 1707
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/image-0085.webp",
+        "name": "Suntory poster",
+        "width": 1652,
+        "height": 2200
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/image-0087.webp",
+        "name": "Tomato packaging",
+        "width": 2400,
+        "height": 1600
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/image-0088.webp",
+        "name": "Apple packaging",
+        "width": 590,
+        "height": 384
+      }
+    ]
+  },
+  "blooming": {
+    "label": "BLOOMING",
+    "category": "ILLUSTRATION / TYPOGRAPHY",
+    "images": [
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/flower-forms/flower-01.webp",
+        "name": "FLOWER FORMS 1",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/flower-forms/flower-02.webp",
+        "name": "FLOWER FORMS 2",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/flower-forms/flower-03.webp",
+        "name": "FLOWER FORMS 3",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/flower-forms/flower-04.webp",
+        "name": "FLOWER FORMS 4",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/flower-forms/flower-05.webp",
+        "name": "FLOWER FORMS 5",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/flower-expansion-2/flower-01.webp",
+        "name": "FLOWER FORMS 6",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/flower-forms/flower-06.webp",
+        "name": "FLOWER FORMS 7",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/flower-forms/flower-07.webp",
+        "name": "FLOWER FORMS 8",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/images/illustration/flower-forms/flower-08.png",
+        "name": "FLOWER FORMS 9",
+        "width": 2481,
+        "height": 3508
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/flower-forms/flower-09.webp",
+        "name": "FLOWER FORMS 10",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/flower-expansion-2/flower-02.webp",
+        "name": "FLOWER FORMS 11",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/images/illustration/flower-forms/flower-10.png",
+        "name": "FLOWER FORMS 12",
+        "width": 2481,
+        "height": 3508
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/flower-forms/flower-11.webp",
+        "name": "FLOWER FORMS 13",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/flower-forms/flower-12.webp",
+        "name": "FLOWER FORMS 14",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/flower-forms/flower-13.webp",
+        "name": "FLOWER FORMS 15",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/flower-expansion-2/flower-03.webp",
+        "name": "FLOWER FORMS 16",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/flower-forms/flower-14.webp",
+        "name": "FLOWER FORMS 17",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/flower-forms/flower-15.webp",
+        "name": "FLOWER FORMS 18",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/flower-forms/flower-16.webp",
+        "name": "FLOWER FORMS 19",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/flower-forms/flower-17.webp",
+        "name": "FLOWER FORMS 20",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/flower-expansion-2/flower-04.webp",
+        "name": "FLOWER FORMS 21",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/flower-forms/flower-18.webp",
+        "name": "FLOWER FORMS 22",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/flower-forms/flower-19.webp",
+        "name": "FLOWER FORMS 23",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/images/illustration/flower-forms/flower-20.png",
+        "name": "FLOWER FORMS 24",
+        "width": 2481,
+        "height": 3508
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/flower-expansion-2/flower-05.webp",
+        "name": "SECOND EXPANSION 4",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/flower-expansion-2/flower-06.webp",
+        "name": "SECOND EXPANSION 5",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/flower-expansion-2/flower-07.webp",
+        "name": "SECOND EXPANSION 6",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/flower-expansion-2/flower-08.webp",
+        "name": "SECOND EXPANSION 7",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/flower-expansion-2/flower-09.webp",
+        "name": "SECOND EXPANSION 8",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/flower-expansion-2/flower-10.webp",
+        "name": "SECOND EXPANSION 9",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/flower-expansion-2/flower-11.webp",
+        "name": "SECOND EXPANSION 10",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/flower-expansion-2/flower-12.webp",
+        "name": "SECOND EXPANSION 11",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/flower-expansion-2/flower-13.webp",
+        "name": "SECOND EXPANSION 12",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/flower-expansion-2/flower-14.webp",
+        "name": "SECOND EXPANSION 13",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/flower-expansion-2/flower-15.webp",
+        "name": "SECOND EXPANSION 14",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/flower-expansion-2/flower-16.webp",
+        "name": "SECOND EXPANSION 15",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/flower-expansion-2/flower-17.webp",
+        "name": "SECOND EXPANSION 16",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/flower-expansion-2/flower-18.webp",
+        "name": "SECOND EXPANSION 17",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/flower-expansion-2/flower-19.webp",
+        "name": "SECOND EXPANSION 18",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/flower-expansion-2/flower-20.webp",
+        "name": "SECOND EXPANSION 19",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/images/illustration/flower-expansion-2/flower-21.png",
+        "name": "SECOND EXPANSION 20",
+        "width": 2481,
+        "height": 3508
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/flower-expansion-2/flower-22.webp",
+        "name": "SECOND EXPANSION 21",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/flower-expansion-2/flower-23.webp",
+        "name": "SECOND EXPANSION 22",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/flower-expansion-2/flower-24.webp",
+        "name": "SECOND EXPANSION 23",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/flower-expansion-2/flower-25.webp",
+        "name": "SECOND EXPANSION 24",
+        "width": 1809,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/flower-expansion-3/flower-01.webp",
+        "name": "THIRD EXPANSION 1",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/flower-expansion-3/flower-02.webp",
+        "name": "THIRD EXPANSION 2",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/flower-expansion-3/flower-03.webp",
+        "name": "THIRD EXPANSION 3",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/flower-expansion-3/flower-04.webp",
+        "name": "THIRD EXPANSION 4",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/flower-expansion-3/flower-05.webp",
+        "name": "THIRD EXPANSION 5",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/flower-expansion-3/flower-06.webp",
+        "name": "THIRD EXPANSION 6",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/flower-expansion-3/flower-07.webp",
+        "name": "THIRD EXPANSION 7",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/flower-expansion-3/flower-08.webp",
+        "name": "THIRD EXPANSION 8",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/flower-expansion-3/flower-09.webp",
+        "name": "THIRD EXPANSION 9",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/flower-expansion-3/flower-10.webp",
+        "name": "THIRD EXPANSION 10",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/flower-expansion-3/flower-11.webp",
+        "name": "THIRD EXPANSION 11",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/flower-expansion-3/flower-12.webp",
+        "name": "THIRD EXPANSION 12",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/flower-expansion-3/flower-13.webp",
+        "name": "THIRD EXPANSION 13",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/flower-expansion-3/flower-14.webp",
+        "name": "THIRD EXPANSION 14",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/flower-expansion-3/flower-15.webp",
+        "name": "THIRD EXPANSION 15",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/flower-expansion-3/flower-16.webp",
+        "name": "THIRD EXPANSION 16",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/flower-expansion-3/flower-17.webp",
+        "name": "THIRD EXPANSION 17",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/flower-expansion-3/flower-18.webp",
+        "name": "THIRD EXPANSION 18",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/flower-expansion-3/flower-19.webp",
+        "name": "THIRD EXPANSION 19",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/flower-expansion-3/flower-20.webp",
+        "name": "THIRD EXPANSION 20",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/flower-expansion-3/flower-21.webp",
+        "name": "THIRD EXPANSION 21",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/flower-expansion-3/flower-22.webp",
+        "name": "THIRD EXPANSION 22",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/flower-expansion-3/flower-23.webp",
+        "name": "THIRD EXPANSION 23",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/flower-expansion-3/flower-24.webp",
+        "name": "THIRD EXPANSION 24",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/type-forms/type-01.webp",
+        "name": "TYPOGRAPHY / ILLUSTRATION 1",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/type-forms/type-02.webp",
+        "name": "TYPOGRAPHY / ILLUSTRATION 2",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/type-forms/type-03.webp",
+        "name": "TYPOGRAPHY / ILLUSTRATION 3",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/type-forms/type-04.webp",
+        "name": "TYPOGRAPHY / ILLUSTRATION 4",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/type-forms/type-05.webp",
+        "name": "TYPOGRAPHY / ILLUSTRATION 5",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/type-forms/type-06.webp",
+        "name": "TYPOGRAPHY / ILLUSTRATION 6",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/type-forms/type-07.webp",
+        "name": "TYPOGRAPHY / ILLUSTRATION 7",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/type-forms/type-08.webp",
+        "name": "TYPOGRAPHY / ILLUSTRATION 8",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/type-forms/type-09.webp",
+        "name": "TYPOGRAPHY / ILLUSTRATION 9",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/type-forms/type-10.webp",
+        "name": "TYPOGRAPHY / ILLUSTRATION 10",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/type-forms/type-11.webp",
+        "name": "TYPOGRAPHY / ILLUSTRATION 11",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/type-forms/type-12.webp",
+        "name": "TYPOGRAPHY / ILLUSTRATION 12",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/type-forms/type-13.webp",
+        "name": "TYPOGRAPHY / ILLUSTRATION 13",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/type-forms/type-14.webp",
+        "name": "TYPOGRAPHY / ILLUSTRATION 14",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/type-forms/type-15.webp",
+        "name": "TYPOGRAPHY / ILLUSTRATION 15",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/type-forms/type-16.webp",
+        "name": "TYPOGRAPHY / ILLUSTRATION 16",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/type-forms/type-17.webp",
+        "name": "TYPOGRAPHY / ILLUSTRATION 17",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/type-forms/type-18.webp",
+        "name": "TYPOGRAPHY / ILLUSTRATION 18",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/type-forms/type-19.webp",
+        "name": "TYPOGRAPHY / ILLUSTRATION 19",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/type-forms/type-20.webp",
+        "name": "TYPOGRAPHY / ILLUSTRATION 20",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/type-forms/type-21.webp",
+        "name": "TYPOGRAPHY / ILLUSTRATION 21",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/type-forms/type-22.webp",
+        "name": "TYPOGRAPHY / ILLUSTRATION 22",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/type-forms/type-23.webp",
+        "name": "TYPOGRAPHY / ILLUSTRATION 23",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/type-forms/type-24.webp",
+        "name": "TYPOGRAPHY / ILLUSTRATION 24",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/type-forms/type-25.webp",
+        "name": "TYPOGRAPHY / ILLUSTRATION 25",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/type-forms/type-26.webp",
+        "name": "TYPOGRAPHY / ILLUSTRATION 26",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/type-forms/type-27.webp",
+        "name": "TYPOGRAPHY / ILLUSTRATION 27",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/type-forms/type-28.webp",
+        "name": "TYPOGRAPHY / ILLUSTRATION 28",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/type-forms/type-29.webp",
+        "name": "TYPOGRAPHY / ILLUSTRATION 29",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/type-forms/type-30.webp",
+        "name": "TYPOGRAPHY / ILLUSTRATION 30",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/type-forms/type-31.webp",
+        "name": "TYPOGRAPHY / ILLUSTRATION 31",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/type-forms/type-32.webp",
+        "name": "TYPOGRAPHY / ILLUSTRATION 32",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/type-forms/type-33.webp",
+        "name": "TYPOGRAPHY / ILLUSTRATION 33",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/type-forms/type-34.webp",
+        "name": "TYPOGRAPHY / ILLUSTRATION 34",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/type-forms/type-35.webp",
+        "name": "TYPOGRAPHY / ILLUSTRATION 35",
+        "width": 1811,
+        "height": 2560
+      },
+      {
+        "src": "/Portfolio/assets/web/assets/images/illustration/type-forms/type-36.webp",
+        "name": "TYPOGRAPHY / ILLUSTRATION 36",
+        "width": 1811,
+        "height": 2560
+      }
+    ]
+  }
+}
