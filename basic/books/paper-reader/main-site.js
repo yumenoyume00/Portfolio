@@ -5,10 +5,11 @@ const report = status => parent.postMessage({type:'room-book-status', status}, l
 const closeReader = () => parent.postMessage({type:'room-book-close'}, location.origin);
 addEventListener('unhandledrejection', () => report('error'));
 const deskEdition=params.get('edition')==='desk-1104';
+const adaptiveMobile=deskEdition&&params.get('delivery')==='adaptive'&&matchMedia('(max-width:650px)').matches;
 const portfolioInfo = await fetch(deskEdition?'./book-info-desk-1104.json':'./book-info.json?v=1103').then(r => r.json());
 const books = {
- portfolio:{title:'作品集 · 新版',aspect:portfolioInfo.aspect,base:'vendor',pages:deskEdition?'./pages-desk-1104.json':params.get('quality')==='retina'?'./pages-hq.json?v=1':'./pages.json?v=1103'},
- landscape:{title:'ポートフォリオ・横',aspect:.5625,base:'vendor-landscape',pages:params.get('quality')==='retina'?'./books/landscape/apps-only-hq.json?v=1':'./books/landscape/apps-only.json?v=20',single:true},
+ portfolio:{title:'作品集 · 新版',aspect:portfolioInfo.aspect,base:'vendor',pages:adaptiveMobile?'./pages-desk-mobile.json':deskEdition?'./pages-desk-1104.json':params.get('quality')==='retina'?'./pages-hq.json?v=1':'./pages.json?v=1103'},
+ landscape:{title:'ポートフォリオ・横',aspect:.5625,base:'vendor-landscape',pages:adaptiveMobile?'./pages-landscape-mobile.json':params.get('quality')==='retina'?'./books/landscape/apps-only-hq.json?v=1':'./books/landscape/apps-only.json?v=20',single:true},
  life:{title:'Life',aspect:765.35/595.28,base:'vendor-life',pages:'./books/life/pages.json'},
  'life-supplement':{title:'Life · 付録',aspect:1.414,base:'vendor-life-supplement',pages:'./books/life-supplement/pages.json'},
  helvetica:{title:'Helvetica',aspect:1,base:'vendor-helvetica',pages:'./books/helvetica/pages.json'},
@@ -55,11 +56,12 @@ if(bookId === 'aota') {
  window.getAotaBookState=()=>frame.contentWindow?.getAotaBookState?.() || (frame.contentDocument?.body.classList.contains('book-open')?'open':'cover');
  addEventListener('keydown',e=>{if(e.key==='Escape')closeReader();});
 } else {
- const version=bookId==='landscape'?'19':['hozzz','life-supplement'].includes(bookId)?'18':'15';
- const {MagazineEngine}=await import(`./${book.base}/MagazineEngine.js?v=${version}`);
- const {MobileMagazineEngine}=await import(`./${book.base}/mobile/MobileMagazineEngine.js?v=${version}`);
- const pages=await fetch(book.pages).then(r=>{if(!r.ok)throw Error('Pages unavailable');return r.json();});
+ const version=adaptiveMobile?'mobile-fast-1104':bookId==='landscape'?'19':['hozzz','life-supplement'].includes(bookId)?'18':'15';
  const narrow=matchMedia('(max-width:650px)');
+ const loadEngine=async single=>single?(await import(`./${book.base}/mobile/MobileMagazineEngine.js?v=${version}`)).MobileMagazineEngine:(await import(`./${book.base}/MagazineEngine.js?v=${version}`)).MagazineEngine;
+ const firstEngine=loadEngine(book.single||narrow.matches);
+ let createRevision=0;
+ const pages=await fetch(book.pages).then(r=>{if(!r.ok)throw Error('Pages unavailable');return r.json();});
  const storageKey=`paper-reader:${bookId}:${pages.length}`;
  let engine,single=false,left=null,right=1,current=0;
  if(mode==='room')try{const saved=Number(sessionStorage.getItem(storageKey));if(Number.isInteger(saved)&&saved>=1&&saved<=pages.length)right=saved;}catch{}
@@ -91,7 +93,11 @@ if(bookId === 'aota') {
   if(bookId==='life-supplement')image.style.clipPath=n%2?'polygon(0 1.4%,100% 32.2%,100% 100%,0 100%)':'polygon(0 32.2%,100% 1.4%,100% 100%,0 100%)';
   $('fallback').replaceChildren(image);update(n-1,null,n);
  }
- function create() {
+ async function create() {
+  const revision=++createRevision;
+  const wantsSingle=book.single||narrow.matches||$('layout').value==='single';
+  const Engine=await loadEngine(wantsSingle);
+  if(revision!==createRevision)return;
   const page=Math.max(0,(right||left||1)-1);
   engine?.dispose();$('book').replaceChildren();$('book').hidden=false;$('fallback').hidden=true;
   single=book.single || narrow.matches || $('layout').value==='single';$('curl').disabled=single;
@@ -100,8 +106,7 @@ if(bookId === 'aota') {
   $('book').style.aspectRatio=String(ratio);
   $('book').style.width=`min(88vw,calc((100dvh - ${mode==='standalone'?185:92}px)*${ratio}))`;
   try {
-   const Engine=single?MobileMagazineEngine:MagazineEngine;
-   engine=new Engine({container:$('book'),pageContents:pages,patternUrl:`./${book.base}/texture.webp`,renderOptions:{paperColor:'#ffffff',minimumPixelRatio:params.get('quality')==='retina'?(book.single?2.75:2.25):1,sourceImageResolution:params.get('quality')==='retina'},initialIndex:page,initialSheet:page===0?0:Math.floor((page+1)/2),textureRadius:1,onPageChange:update,onReady:()=>{document.body.dataset.ready='true';$('status').style.display='none';report('ready');}});
+   engine=new Engine({container:$('book'),pageContents:pages,patternUrl:`./${book.base}/texture.webp`,renderOptions:{paperColor:'#ffffff',...(adaptiveMobile?{textureAhead:2}:{}),minimumPixelRatio:adaptiveMobile?1.5:params.get('quality')==='retina'?(book.single?2.75:2.25):1,sourceImageResolution:params.get('quality')==='retina'},initialIndex:page,initialSheet:page===0?0:Math.floor((page+1)/2),textureRadius:1,onPageChange:update,onReady:()=>{document.body.dataset.ready='true';$('status').style.display='none';report('ready');}});
    if(engine.S)engine.S.curlArc=Number($('curl').value);
    const n=engine.getCurrentSheet();
    update(n,single?null:(n===0?null:2*n),single?n+1:(n===Math.ceil(pages.length/2)?null:2*n+1));
@@ -145,5 +150,6 @@ if(bookId === 'aota') {
   const index=Math.max(0,(right||left||1)-1);
   await Promise.all(pages.slice(Math.max(0,index-1),index+2).map(page=>loadPageImage(page.imageUrl)));
  }
+ await firstEngine;
  create();
 }

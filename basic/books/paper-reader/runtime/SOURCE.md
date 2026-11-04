@@ -1,0 +1,1 @@
+Minified runtime copies of ../vendor/three.module.js and three.core.js, Three.js r186, MIT. Prepared with the existing Next.js bundled Terser; original source and ../LICENSE-THREE retained. No engine or artwork changes.

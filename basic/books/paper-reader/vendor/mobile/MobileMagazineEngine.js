@@ -237,7 +237,7 @@ export class MobileMagazineEngine {
     // ---------- 页面纹理（按当前页前后窗口懒生成） ----------
     textureWindow() {
         const lo = Math.max(0, this.current - TEXTURE_BEHIND);
-        const hi = Math.min(this.count - 1, this.current + MOBILE_TUNING.onPile.renderDepth + TEXTURE_AHEAD_EXTRA);
+        const hi = Math.min(this.count - 1, this.current + (this.renderOptions.textureAhead ?? (MOBILE_TUNING.onPile.renderDepth + TEXTURE_AHEAD_EXTRA)));
         return [lo, hi];
     }
     buildTexture(pageIndex) {
