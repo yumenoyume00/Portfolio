@@ -21,16 +21,19 @@ export function getCachedPageImage(url) {
  * 图片会被绘入 Canvas 再上传为 WebGL 纹理，因此必须以 CORS 方式请求（crossOrigin=anonymous），
  * 否则跨域图片会污染画布，纹理上传直接报 SecurityError；跨域图床需返回 Access-Control-Allow-Origin。
  */
-export function loadPageImage(url) {
+export function loadPageImage(url, priority = 'auto') {
     const hit = cache.get(url);
     if (hit?.status === 'ready')
         return Promise.resolve(hit.image);
-    if (hit?.status === 'loading')
+    if (hit?.status === 'loading') {
+        if(priority==='high'&&hit.image)hit.image.fetchPriority='high';
         return hit.promise;
-    if (hit?.status === 'failed')
+    }
+    if (hit?.status === 'failed'&&priority!=='high')
         return Promise.resolve(null);
+    let pendingImage;
     const promise = new Promise((resolve) => {
-        const image = new Image();
+        const image = new Image();pendingImage=image;image.fetchPriority=priority;
         image.crossOrigin = 'anonymous';
         image.decoding = 'async';
         image.onload = () => {
@@ -44,7 +47,7 @@ export function loadPageImage(url) {
         };
         image.src = url;
     });
-    cache.set(url, { status: 'loading', promise });
+    cache.set(url, { status: 'loading', promise, image:pendingImage });
     return promise;
 }
 /** 将图片按 fit 方式绘入整张页面画布 */
