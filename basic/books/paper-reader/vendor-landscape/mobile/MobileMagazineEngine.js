@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { renderPageBase } from '../pageRenderer.js?v=19';
-import { getCachedPageImage, loadPageImage } from '../pageImages.js?v=19';
+import { renderPageBase } from '../pageRenderer.js?v=19-ready2';
+import { getCachedPageImage, loadPageImage } from '../pageImages.js?v=19-ready2';
 import { pageImageUrls } from '../figureFlow.js?v=19';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../pageLayout.js?v=19';
 import { paintReaderOverlay } from '../reader/overlayPainter.js?v=19';

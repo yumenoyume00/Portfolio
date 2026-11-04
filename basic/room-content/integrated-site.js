@@ -1,6 +1,6 @@
 // Local wrapper bridge. The study34 baseline and its motion code remain untouched.
 (() => {
-let requestedSection = 'projects';
+let requestedSection = new URLSearchParams(location.search).get('edition')==='desk'?'about':'projects';
 let requestedProject = null;
 const destinations = fetch('/Portfolio/basic/room-content/project-destinations.json').then(response => {
   if (!response.ok) throw Error('Project destinations unavailable');
