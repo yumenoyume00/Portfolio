@@ -2,9 +2,9 @@ import * as THREE from 'three';
 import { createBakedSheetGeometry, SHEET_ASPECT } from './noiseBaker.js?v=19';
 import { VERTEX_DECLARATIONS, NORMAL_RECOMPUTE, DEPTH_VERTEX_POSITION, FRAGMENT_HEADER, MAP_FRAGMENT, ROUGHNESS_FRAGMENT, OPAQUE_FRAGMENT, NORMAL_FRAGMENT, } from './shaders.js?v=19';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from './pageLayout.js?v=19';
-import { getCachedPageImage, loadPageImage } from './pageImages.js?v=19-ready2';
+import { getCachedPageImage, loadPageImage } from './pageImages.js?v=19-instant1';
 import { pageImageUrls } from './figureFlow.js?v=19';
-import { renderPageBase, paintEditOverlay } from './pageRenderer.js?v=19-ready2';
+import { renderPageBase, paintEditOverlay } from './pageRenderer.js?v=19-instant1';
 import { paintReaderOverlay } from './reader/overlayPainter.js?v=19';
 import { pageToSheet, planFlipChain } from './spread.js?v=19';
 import { desktopPageRange, planTextures } from './textureWindow.js?v=19';
@@ -185,7 +185,7 @@ export class MagazineEngine {
         this.initPatternTexture();
         this.renderAllPageTextures();
         // Re-render once web fonts (such as LXGW WenKai) finish loading in browser
-        if (typeof document !== 'undefined' && 'fonts' in document) {
+        if (!this.pageContents.every(page=>page.imageUrl) && typeof document !== 'undefined' && 'fonts' in document) {
             document.fonts.ready.then(() => {
                 if (!this.isDisposed) {
                     this.renderAllPageTextures();
@@ -364,6 +364,10 @@ export class MagazineEngine {
         for (const url of pageImageUrls(page)) {
             if (getCachedPageImage(url))
                 continue;
+            this.imageLoads ??= new Set();
+            const loadingKey = `${pageIndex}:${url}`;
+            if(this.imageLoads.has(loadingKey))continue;
+            this.imageLoads.add(loadingKey);
             void loadPageImage(url).then((image) => {
                 if (!image || this.isDisposed)
                     return;
@@ -371,7 +375,7 @@ export class MagazineEngine {
                 if (!current || !pageImageUrls(current).includes(url))
                     return;
                 this.composePage(pageIndex, true);
-            });
+            }).finally(()=>this.imageLoads.delete(loadingKey));
         }
     }
     /**

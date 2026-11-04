@@ -91,3 +91,6 @@ export function drawFigures(ctx, page, slot, x, width, y) {
     }
     return y;
 }
+
+/** Release decoded images far from reading; artwork bytes stay in the HTTP cache. */
+export function keepPageImages(urls){const keep=new Set(urls);for(const[url,entry]of cache){if(entry.status==='ready'&&!keep.has(url)){cache.delete(url);entry.image.onload=null;entry.image.onerror=null;entry.image.src='';}}}

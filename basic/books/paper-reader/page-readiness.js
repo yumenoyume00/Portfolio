@@ -6,16 +6,16 @@ export function installPageReadiness(engine,pages,{single,images,onLoading}) {
  const loaded=indices=>indices.every(i=>!pages[i].imageUrl||images.getCachedPageImage(pages[i].imageUrl));
  const run=(indices,action)=>{
   const revision=++intent;
-  if(loaded(indices)){onLoading(false);action();return;}
+  if(loaded(indices)){onLoading(false);action();return true;}
   onLoading(true);
   let timer;
   const requests=Promise.all(indices.map(i=>pages[i].imageUrl?images.loadPageImage(pages[i].imageUrl,'high'):true));
-  Promise.race([requests,new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('Page image timeout')),30000);})])
+  return Promise.race([requests,new Promise((_,reject)=>{timer=setTimeout(()=>reject(Error('Page image timeout')),30000);})])
    .then(results=>{
-    if(revision!==intent||engine.isDisposed)return;
+    if(revision!==intent||engine.isDisposed)return false;
     if(results.some(result=>!result))throw Error('Page image unavailable');
-    engine.renderAllPageTextures();onLoading(false);action();
-   }).catch(()=>{if(revision===intent&&!engine.isDisposed)onLoading(true,true);})
+    onLoading(false);action();return true;
+   }).catch(()=>{if(revision===intent&&!engine.isDisposed)onLoading(true,true);return false;})
    .finally(()=>clearTimeout(timer));
  };
  const next=engine.flipNext.bind(engine),prev=engine.flipPrev.bind(engine),jump=engine.jumpToPage.bind(engine);

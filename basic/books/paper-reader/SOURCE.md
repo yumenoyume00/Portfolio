@@ -1,3 +1,7 @@
+## Current primary portrait source
+
+The selected source is `/Users/zoumeng/Downloads/作品集 竖  297.pdf`, SHA-256 `835d01ff670d169b96143766037fadfccd6eaae3b0ded845f5c45e9fb5c66c56`. The source is copied unchanged to `portfolios/portrait-current.pdf`. Its 61 PDF pages become 120 leaves, at the same 2800px height and lossless WebP encoding as the prior HQ edition. Exact encoded-image hashes reuse119 unchanged leaves; the revised left introduction/photo leaf4 is stored under `pages-current/`. `pages-desk-current.json` and `book-info-desk-current.json` are the active primary manifests. Published Room files remain separate and unchanged. `scripts/prepare-current-portrait.py` reproduces the extraction.
+
 Current source PDF (unchanged): /Users/zoumeng/Desktop/2026 求职用/作品集1103.pdf
 PDF pages: 61
 Reader pages: 120

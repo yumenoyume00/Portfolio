@@ -5,10 +5,11 @@ const report = status => parent.postMessage({type:'room-book-status', status}, l
 const closeReader = () => parent.postMessage({type:'room-book-close'}, location.origin);
 addEventListener('unhandledrejection', () => report('error'));
 const deskEdition=params.get('edition')==='desk-1104';
+const contentQuery=deskEdition?'?content='+encodeURIComponent(params.get('content')||'current'):'';
 const adaptiveMobile=deskEdition&&params.get('delivery')==='adaptive'&&matchMedia('(max-width:650px)').matches;
-const portfolioInfo = await fetch(deskEdition?'./book-info-desk-1104.json':'./book-info.json?v=1103').then(r => r.json());
+const portfolioInfo = await fetch(deskEdition?'./book-info-desk-current.json'+contentQuery:'./book-info.json?v=1103').then(r => r.json());
 const books = {
- portfolio:{title:'作品集 · 新版',aspect:portfolioInfo.aspect,base:'vendor',pages:adaptiveMobile?'./pages-desk-mobile.json':deskEdition?'./pages-desk-1104.json':params.get('quality')==='retina'?'./pages-hq.json?v=1':'./pages.json?v=1103'},
+ portfolio:{title:'作品集 · 新版',aspect:portfolioInfo.aspect,base:'vendor',pages:deskEdition?'./pages-desk-current.json'+contentQuery:params.get('quality')==='retina'?'./pages-hq.json?v=1':'./pages.json?v=1103'},
  landscape:{title:'ポートフォリオ・横',aspect:.5625,base:'vendor-landscape',pages:adaptiveMobile?'./pages-landscape-mobile.json':params.get('quality')==='retina'?'./books/landscape/apps-only-hq.json?v=1':'./books/landscape/apps-only.json?v=20',single:true},
  life:{title:'Life',aspect:765.35/595.28,base:'vendor-life',pages:'./books/life/pages.json'},
  'life-supplement':{title:'Life · 付録',aspect:1.414,base:'vendor-life-supplement',pages:'./books/life-supplement/pages.json'},
@@ -56,10 +57,10 @@ if(bookId === 'aota') {
  window.getAotaBookState=()=>frame.contentWindow?.getAotaBookState?.() || (frame.contentDocument?.body.classList.contains('book-open')?'open':'cover');
  addEventListener('keydown',e=>{if(e.key==='Escape')closeReader();});
 } else {
- const imageVersion=bookId==='landscape'?'19-ready2':['hozzz','life-supplement'].includes(bookId)?'18':book.base==='vendor'?'15-ready2':'15';
+ const imageVersion=bookId==='landscape'?'19-instant1':['hozzz','life-supplement'].includes(bookId)?'18':book.base==='vendor'?'15-instant1':'15';
  const images=await import(`./${book.base}/pageImages.js?v=${imageVersion}`);
- const {installPageReadiness}=await import('./page-readiness.js?v=white-pages-1');
- const version=deskEdition?'white-pages-2':bookId==='landscape'?'19':['hozzz','life-supplement'].includes(bookId)?'18':'15';
+ const {installPageReadiness}=await import('./page-readiness.js?v=instant-current-1');
+ const version=deskEdition?'instant-current-1':bookId==='landscape'?'19':['hozzz','life-supplement'].includes(bookId)?'18':'15';
  const narrow=matchMedia('(max-width:650px)');
  const loadEngine=async single=>single?(await import(`./${book.base}/mobile/MobileMagazineEngine.js?v=${version}`)).MobileMagazineEngine:(await import(`./${book.base}/MagazineEngine.js?v=${version}`)).MagazineEngine;
  const firstEngine=loadEngine(book.single||narrow.matches);
@@ -72,6 +73,16 @@ if(bookId === 'aota') {
   const saved=JSON.parse(sessionStorage.getItem('portfolio-presentation-return')||'null');
   if(saved?.book===(bookId==='portfolio'?'portfolio-portrait':bookId==='landscape'?'portfolio-landscape':null)&&Number.isInteger(saved.page)&&saved.page>=1&&saved.page<=pages.length){right=saved.page;sessionStorage.removeItem('portfolio-presentation-return');}
  }catch{}
+ let warmQueue=[],warming=0;
+ const warmingUrls=new Set();
+ function warmNext(last){
+  if(!deskEdition)return;
+  const next=pages.slice(last,Math.min(pages.length,last+4)).map(p=>p.imageUrl).filter(Boolean);
+  warmQueue=next.filter(url=>!warmingUrls.has(url)&&!images.getCachedPageImage(url));
+  const pump=()=>{while(warming<2&&warmQueue.length){const url=warmQueue.shift();warming++;warmingUrls.add(url);images.loadPageImage(url,'low').finally(()=>{warming--;warmingUrls.delete(url);pump();});}};
+  pump();
+  images.keepPageImages?.(pages.slice(Math.max(0,last-8),Math.min(pages.length,last+10)).map(p=>p.imageUrl));
+ }
  function update(sheet,l,r) {
   current=sheet;left=l;right=r;
   $('count').textContent=`${[l,r].filter(Boolean).join(' – ')} / ${pages.length}`;
@@ -81,6 +92,7 @@ if(bookId === 'aota') {
   $('book').dataset.rightPage=r?String(r):'';
   $('book').dataset.page=String(r||l);
   document.documentElement.dataset.bookState=sheet===0?'cover':!r?'back':'open';
+  warmNext(r||l||1);
   if(['portfolio','hozzz','life-supplement'].includes(bookId))$('book').style.transform=single?'':sheet===0?'translateX(-25%)':sheet===Math.ceil(pages.length/2)?'translateX(25%)':'';
   try{sessionStorage.setItem(storageKey,String(r||l||1));}catch{}
  }
@@ -150,7 +162,7 @@ if(bookId === 'aota') {
  // Local book-only edition keeps the same live engine from cover through reading.
  window.setPortfolioReaderPage = page => {
   const value = Math.max(1, Math.min(pages.length, Number(page) || 1));
-  if(engine) engine.jumpToPage(value - 1);
+  if(engine) return engine.jumpToPage(value - 1);
   else { right = value;updateFallback(); }
  };
  if(deskEdition){

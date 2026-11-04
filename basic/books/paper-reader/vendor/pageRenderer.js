@@ -1,7 +1,7 @@
 import { CANVAS_WIDTH, CANVAS_HEIGHT, getCachedLayoutElements } from './pageLayout.js?v=15';
 import { WENKAI_FONT, hasText, wrapText, caretGeometry, selectionRects, } from './textMetrics.js?v=15';
 import { buildSelectionShape, traceSegments, rgba } from './selectionShape.js?v=15';
-import { drawFigures, drawPageImage, getCachedPageImage } from './pageImages.js?v=15-ready2';
+import { drawFigures, drawPageImage, getCachedPageImage } from './pageImages.js?v=15-instant1';
 const DEFAULT_OPTIONS = {
     paperColor: '#F9F7F2', // 经典书籍米纸色
     textColor: '#242220', // 墨黑

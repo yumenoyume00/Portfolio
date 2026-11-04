@@ -1,6 +1,6 @@
 import * as THREE from 'three';
-import { renderPageBase } from '../pageRenderer.js?v=19-ready2';
-import { getCachedPageImage, loadPageImage } from '../pageImages.js?v=19-ready2';
+import { renderPageBase } from '../pageRenderer.js?v=19-instant1';
+import { getCachedPageImage, loadPageImage } from '../pageImages.js?v=19-instant1';
 import { pageImageUrls } from '../figureFlow.js?v=19';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../pageLayout.js?v=19';
 import { paintReaderOverlay } from '../reader/overlayPainter.js?v=19';
@@ -128,7 +128,7 @@ export class MobileMagazineEngine {
         this.syncTextures();
         this.isReady = true;
         this.onReady?.();
-        if (typeof document !== 'undefined' && 'fonts' in document) {
+        if (!this.pageContents.every(page=>page.imageUrl) && typeof document !== 'undefined' && 'fonts' in document) {
             document.fonts.ready.then(() => {
                 if (!this.isDisposed)
                     this.rebuildTextures();
@@ -280,6 +280,10 @@ export class MobileMagazineEngine {
         for (const url of pageImageUrls(page)) {
             if (getCachedPageImage(url))
                 continue;
+            this.imageLoads ??= new Set();
+            const loadingKey = `${pageIndex}:${url}`;
+            if(this.imageLoads.has(loadingKey))continue;
+            this.imageLoads.add(loadingKey);
             void loadPageImage(url).then((image) => {
                 if (!image || this.isDisposed || !this.pageTextures[pageIndex])
                     return;
@@ -287,7 +291,7 @@ export class MobileMagazineEngine {
                 if (!current || !pageImageUrls(current).includes(url))
                     return;
                 this.buildTexture(pageIndex);
-            });
+            }).finally(()=>this.imageLoads.delete(loadingKey));
         }
     }
     /** 底图 + 阅读层 → 纹理画布；没有阅读层时直接用底图 */
