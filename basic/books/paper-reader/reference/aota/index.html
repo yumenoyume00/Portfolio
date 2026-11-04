@@ -1,0 +1,2414 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta
+  name="viewport"
+  content="width=device-width, initial-scale=1.0"
+>
+
+<title>aota — ZOU MENG</title>
+
+
+<style>
+
+/* =========================================================
+   RESET
+========================================================= */
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html,
+body {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+body {
+  background: #f7f7f7;
+
+  font-family:
+    Helvetica,
+    Arial,
+    sans-serif;
+
+  color: #999;
+}
+
+
+/* =========================================================
+   VARIABLES
+========================================================= */
+
+:root {
+  --page-size: 520px;
+}
+
+
+/* =========================================================
+   LOADING
+========================================================= */
+
+#loading {
+  position: fixed;
+  inset: 0;
+
+  z-index: 99999;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #f7f7f7;
+
+  font-size: 10px;
+  letter-spacing: .05em;
+
+  color: #999;
+
+  transition:
+    opacity .3s ease;
+}
+
+
+#loading.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+
+#loading.error {
+  color: #777;
+}
+
+
+/* =========================================================
+   STAGE
+========================================================= */
+
+#stage {
+  position: fixed;
+  inset: 0;
+
+  overflow: hidden;
+
+  perspective: 2200px;
+  perspective-origin: 50% 50%;
+
+  user-select: none;
+  touch-action: none;
+
+  cursor: default;
+}
+
+
+body.book-open #stage.can-pan {
+  cursor: grab;
+}
+
+
+body.book-open #stage.can-pan.dragging {
+  cursor: grabbing;
+}
+
+
+/* =========================================================
+   WORLD
+
+   所有 panel 都存在于同一个 3D world 中。
+========================================================= */
+
+#world {
+  position: absolute;
+
+  left: 0;
+  top: 0;
+
+  width: 0;
+  height: var(--page-size);
+
+  transform-style: preserve-3d;
+
+  will-change: transform;
+}
+
+
+/* =========================================================
+   PANEL
+
+   每一个 panel 就是一本风琴书的一折。
+
+   重要：
+   JS 会根据上一折的右边缘，
+   计算下一折的位置。
+
+   所以它们不是互相独立漂浮。
+========================================================= */
+
+.panel {
+  position: absolute;
+
+  left: 0;
+  top: 0;
+
+  width: var(--page-size);
+  height: var(--page-size);
+
+  background: #fff;
+
+  transform-origin: left center;
+  transform-style: preserve-3d;
+
+  backface-visibility: hidden;
+
+  overflow: hidden;
+
+  will-change:
+    transform,
+    opacity;
+}
+
+
+/* =========================================================
+   PDF CANVAS
+========================================================= */
+
+.panel canvas {
+  position: absolute;
+  inset: 0;
+
+  display: block;
+
+  width: 100%;
+  height: 100%;
+
+  background: #fff;
+
+  image-rendering: auto;
+
+  filter: none !important;
+
+  pointer-events: none;
+}
+
+
+/* =========================================================
+   FOLD LIGHT
+
+   阴影属于每一张纸本身。
+
+   它会跟着 panel 一起旋转，
+   不存在固定在屏幕中央的阴影。
+========================================================= */
+
+.fold-light {
+  position: absolute;
+  inset: 0;
+
+  z-index: 5;
+
+  pointer-events: none;
+
+  opacity: 0;
+
+  will-change: opacity;
+}
+
+
+.panel:nth-child(even)
+.fold-light {
+  background:
+    linear-gradient(
+      to right,
+      rgba(0,0,0,.18) 0%,
+      rgba(0,0,0,.07) 28%,
+      rgba(0,0,0,.015) 70%,
+      rgba(0,0,0,0) 100%
+    );
+}
+
+
+.panel:nth-child(odd)
+.fold-light {
+  background:
+    linear-gradient(
+      to left,
+      rgba(0,0,0,.16) 0%,
+      rgba(0,0,0,.06) 30%,
+      rgba(0,0,0,.012) 72%,
+      rgba(0,0,0,0) 100%
+    );
+}
+
+
+/* 第一张封面不要压暗 */
+
+.panel:first-child
+.fold-light {
+  display: none;
+}
+
+
+/* =========================================================
+   FLOOR SHADOW
+========================================================= */
+
+#floorShadow {
+  position: fixed;
+
+  left: 50%;
+  top: 50%;
+
+  z-index: -1;
+
+  width: var(--page-size);
+  height: 42px;
+
+  transform:
+    translate(
+      -50%,
+      calc(var(--page-size) / 2 + 25px)
+    );
+
+  border-radius: 50%;
+
+  background:
+    rgba(0,0,0,.04);
+
+  filter:
+    blur(30px);
+
+  opacity: .55;
+
+  pointer-events: none;
+
+  will-change:
+    width,
+    opacity,
+    transform;
+}
+
+
+/* =========================================================
+   DRAG PROXY
+
+   GSAP Draggable 控制这个看不见的对象。
+
+   world 自己的 transform 不交给 Draggable，
+   防止跟 3D transform 冲突。
+========================================================= */
+
+#dragProxy {
+  position: fixed;
+
+  left: 0;
+  top: 0;
+
+  width: 1px;
+  height: 1px;
+
+  pointer-events: none;
+}
+
+
+/* =========================================================
+   UI
+========================================================= */
+
+#counter {
+  position: fixed;
+
+  left: 30px;
+  bottom: 27px;
+
+  z-index: 50000;
+
+  font-size: 9px;
+  letter-spacing: .02em;
+
+  color: #aaa;
+}
+
+
+#hint {
+  position: fixed;
+
+  left: 50%;
+  bottom: 27px;
+
+  z-index: 50000;
+
+  transform:
+    translateX(-50%);
+
+  font-size: 9px;
+  letter-spacing: .05em;
+
+  color: #aaa;
+
+  white-space: nowrap;
+
+  pointer-events: none;
+}
+
+
+#reset {
+  position: fixed;
+
+  top: 27px;
+  right: 30px;
+
+  z-index: 50000;
+
+  border: 0;
+  padding: 0;
+
+  background: transparent;
+
+  font-family:
+    Helvetica,
+    Arial,
+    sans-serif;
+
+  font-size: 9px;
+  letter-spacing: .05em;
+
+  color: #aaa;
+
+  cursor: pointer;
+}
+
+
+#reset:hover {
+  color: #666;
+}
+
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width: 700px) {
+
+  #counter {
+    left: 18px;
+    bottom: 18px;
+  }
+
+  #hint {
+    bottom: 18px;
+  }
+
+  #reset {
+    top: 18px;
+    right: 18px;
+  }
+
+}
+
+</style>
+
+<style>body,#loading{background:#fff}.panel{box-shadow:0 3px 12px #0000000c;border-radius:0 1.5px 2px 0}.panel:after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(90deg,#00000006,transparent 16%,#ffffff05 62%,#00000004);z-index:4}#floorShadow{background:rgba(0,0,0,.065);filter:blur(22px)}</style><style id="unified-paper-light">
+/* Shared 1–2% paper white and neutral, soft shadows. Original fold motion retained. */
+body,#loading{background:#fff}
+.panel{background:#fbfbfb;box-shadow:3px 5px 0 rgba(0,0,0,.14),4px 7px 2px rgba(0,0,0,.035)}
+.panel canvas{filter:brightness(.985)!important;background:#fbfbfb}
+.panel:after{background:linear-gradient(90deg,rgba(0,0,0,.018),transparent 14%,transparent 82%,rgba(0,0,0,.008))}
+.panel:nth-child(even) .fold-light{background:linear-gradient(90deg,rgba(0,0,0,.12),rgba(0,0,0,.035) 16%,transparent 42%)}
+.panel:nth-child(odd) .fold-light{background:linear-gradient(270deg,rgba(0,0,0,.12),rgba(0,0,0,.035) 16%,transparent 42%)}
+/* Contact shadows follow each physical panel; remove the old blurred floor ellipse. */
+#floorShadow{display:none;filter:none}
+</style></head>
+
+
+<body>
+
+
+<!-- =========================================================
+     LOADING
+========================================================= -->
+
+<div id="loading">
+  LOADING AOTA...
+</div>
+
+
+
+<!-- =========================================================
+     STAGE
+========================================================= -->
+
+<div id="stage">
+
+  <div id="world"></div>
+
+</div>
+
+
+
+<!-- =========================================================
+     FLOOR SHADOW
+========================================================= -->
+
+<div id="floorShadow"></div>
+
+
+
+<!-- =========================================================
+     GSAP DRAG PROXY
+========================================================= -->
+
+<div id="dragProxy"></div>
+
+
+
+<!-- =========================================================
+     UI
+========================================================= -->
+
+<div id="counter">
+  —
+</div>
+
+
+<div id="hint">
+  CLICK TO UNFOLD
+</div>
+
+
+<button id="reset">
+  RESET
+</button>
+
+
+
+<!-- =========================================================
+     PDF.JS
+========================================================= -->
+
+<script
+src="../pdf.min.js">
+</script>
+
+
+
+<!-- =========================================================
+     GSAP
+========================================================= -->
+
+<script
+src="../gsap.min.js">
+</script>
+
+
+<script
+src="../Draggable.min.js">
+</script>
+
+
+
+<script>
+
+/* =========================================================
+   CONFIG
+========================================================= */
+
+const PDF_URL =
+  new URL(
+    "aota.pdf",
+    document.baseURI
+  ).href;
+
+
+/*
+  风琴书在阅读状态下的正方形尺寸。
+
+  这里先让它占屏幕高度 72%。
+*/
+
+const PAGE_HEIGHT_RATIO =
+  0.5;
+
+
+/*
+  折叠最深时的角度。
+
+  82° 已经非常接近真实风琴折，
+  但不会到 90° 导致浏览器视觉消失。
+*/
+
+const MAX_FOLD_ANGLE =
+  82;
+
+
+/*
+  展开动画时间。
+*/
+
+const OPEN_DURATION =
+  1.35;
+
+
+/*
+  收回时间。
+*/
+
+const CLOSE_DURATION =
+  1.0;
+
+
+/*
+  PDF 高清程度。
+
+  继续沿用 Life 那种：
+  PDF → 高清 Canvas
+  不生成 JPEG / WebP。
+*/
+
+const EXTRA_QUALITY =
+  1.55;
+
+
+const MAX_CANVAS_SIDE =
+  3800;
+
+
+/*
+  完全展开后左右留白。
+*/
+
+const OPEN_SIDE_MARGIN =
+  64;
+
+
+
+/* =========================================================
+   ELEMENTS
+========================================================= */
+
+const stage =
+  document.getElementById(
+    "stage"
+  );
+
+
+const world =
+  document.getElementById(
+    "world"
+  );
+
+
+const floorShadow =
+  document.getElementById(
+    "floorShadow"
+  );
+
+
+const dragProxy =
+  document.getElementById(
+    "dragProxy"
+  );
+
+
+const loading =
+  document.getElementById(
+    "loading"
+  );
+
+
+const counter =
+  document.getElementById(
+    "counter"
+  );
+
+
+const hint =
+  document.getElementById(
+    "hint"
+  );
+
+
+const reset =
+  document.getElementById(
+    "reset"
+  );
+
+
+
+/* =========================================================
+   STATE
+========================================================= */
+
+let pdf =
+  null;
+
+
+let panels =
+  [];
+
+
+let pageSize =
+  520;
+
+
+/*
+  progress
+
+  0 = 封面状态
+  1 = 完全展开
+*/
+
+const bookState = {
+  progress: 0
+};
+
+
+/*
+  完全展开后的横向移动。
+*/
+
+let panX =
+  0;
+
+
+/*
+  Draggable instance
+*/
+
+let panDraggable =
+  null;
+
+
+/*
+  当前是否正在动画。
+*/
+
+let animating =
+  false;
+
+
+/*
+  当前完全展开时的宽度。
+*/
+
+let openBookWidth =
+  0;
+
+
+
+/* =========================================================
+   PDF WORKER
+========================================================= */
+
+pdfjsLib
+  .GlobalWorkerOptions
+  .workerSrc =
+  "../pdf.worker.min.js";
+
+
+
+/* =========================================================
+   GSAP
+========================================================= */
+
+gsap.registerPlugin(
+  Draggable
+);
+
+
+
+/* =========================================================
+   HELPERS
+========================================================= */
+
+function clamp(
+  value,
+  min,
+  max
+) {
+
+  return Math.max(
+    min,
+    Math.min(
+      max,
+      value
+    )
+  );
+
+}
+
+
+function lerp(
+  a,
+  b,
+  t
+) {
+
+  return a
+    +
+    (
+      b - a
+    )
+    *
+    t;
+
+}
+
+
+/*
+  让移动前半段和后半段都比较自然。
+*/
+
+function smoothStep(
+  t
+) {
+
+  t =
+    clamp(
+      t,
+      0,
+      1
+    );
+
+
+  return (
+    t
+    *
+    t
+    *
+    (
+      3
+      -
+      2 * t
+    )
+  );
+
+}
+
+
+
+/* =========================================================
+   LOADING
+========================================================= */
+
+function setStatus(
+  text
+) {
+
+  loading.classList.remove(
+    "hidden",
+    "error"
+  );
+
+
+  loading.textContent =
+    text;
+
+}
+
+
+
+/* =========================================================
+   ERROR
+========================================================= */
+
+function showError(
+  title,
+  error
+) {
+
+  console.error(
+    title,
+    error
+  );
+
+
+  loading.classList.add(
+    "error"
+  );
+
+
+  loading.classList.remove(
+    "hidden"
+  );
+
+
+  const detail =
+
+    error &&
+    error.message
+
+      ? error.message
+
+      : String(
+          error || ""
+        );
+
+
+  loading.innerHTML =
+    `
+      ${title}
+
+      <br><br>
+
+      <span
+        style="
+          font-size:8px;
+          color:#aaa;
+          letter-spacing:0;
+        "
+      >
+        ${detail}
+      </span>
+    `;
+
+}
+
+
+
+/* =========================================================
+   INIT
+========================================================= */
+
+async function init() {
+
+  try {
+
+
+    /* -----------------------------------------------------
+       LIBRARY CHECK
+    ----------------------------------------------------- */
+
+    if (
+      typeof window.pdfjsLib ===
+      "undefined"
+    ) {
+
+      throw new Error(
+        "pdf.js did not load"
+      );
+
+    }
+
+
+    if (
+      typeof window.gsap ===
+      "undefined"
+    ) {
+
+      throw new Error(
+        "GSAP did not load"
+      );
+
+    }
+
+
+    if (
+      typeof window.Draggable ===
+      "undefined"
+    ) {
+
+      throw new Error(
+        "GSAP Draggable did not load"
+      );
+
+    }
+
+
+
+    /* -----------------------------------------------------
+       LOAD PDF
+    ----------------------------------------------------- */
+
+    setStatus(
+      "LOADING AOTA..."
+    );
+
+
+    const response =
+      await fetch(
+        PDF_URL,
+        {
+          cache:
+            "no-store"
+        }
+      );
+
+
+    if (
+      !response.ok
+    ) {
+
+      throw new Error(
+        `HTTP ${response.status}`
+      );
+
+    }
+
+
+    const buffer =
+      await response.arrayBuffer();
+
+
+    pdf =
+      await pdfjsLib
+        .getDocument({
+
+          data:
+            new Uint8Array(
+              buffer
+            )
+
+        })
+        .promise;
+
+
+
+    /* -----------------------------------------------------
+       CALCULATE DISPLAY SIZE
+    ----------------------------------------------------- */
+
+    calculatePageSize();
+
+
+
+    /* -----------------------------------------------------
+       PDF → PANELS
+    ----------------------------------------------------- */
+
+    const canvases =
+      [];
+
+
+    for (
+      let pageNumber = 1;
+      pageNumber <= pdf.numPages;
+      pageNumber++
+    ) {
+
+      setStatus(
+        `RENDERING ${pageNumber} / ${pdf.numPages}`
+      );
+
+
+      const result =
+        await renderPDFPageToPanels(
+          pageNumber
+        );
+
+
+      canvases.push(
+        ...result
+      );
+
+    }
+
+
+
+    /* -----------------------------------------------------
+       BUILD DOM
+    ----------------------------------------------------- */
+
+    canvases.forEach(
+      (
+        canvas,
+        index
+      ) => {
+
+        const panel =
+          document.createElement(
+            "div"
+          );
+
+
+        panel.className =
+          "panel";
+
+
+        panel.dataset.index =
+          index;
+
+
+
+        /* PDF */
+
+        panel.appendChild(
+          canvas
+        );
+
+
+
+        /* fold lighting */
+
+        const light =
+          document.createElement(
+            "div"
+          );
+
+
+        light.className =
+          "fold-light";
+
+
+        panel.appendChild(
+          light
+        );
+
+
+        world.appendChild(
+          panel
+        );
+
+
+        panels.push(
+          panel
+        );
+
+      }
+    );
+
+
+
+    if (
+      panels.length < 2
+    ) {
+
+      throw new Error(
+        "aota.pdf does not contain enough panels"
+      );
+
+    }
+
+
+
+    /* -----------------------------------------------------
+       OPEN WIDTH
+    ----------------------------------------------------- */
+
+    openBookWidth =
+      panels.length
+      *
+      pageSize;
+
+
+
+    /* -----------------------------------------------------
+       COVER CLICK
+    ----------------------------------------------------- */
+
+    panels[0]
+      .addEventListener(
+        "click",
+        event => {
+
+          event.stopPropagation();
+
+
+          if (
+            bookState.progress < .02
+            &&
+            !animating
+          ) {
+
+            openBook();
+
+          }
+
+        }
+      );
+
+
+
+    /* -----------------------------------------------------
+       STAGE CLICK
+
+       点封面附近也可以展开，
+       不需要一定点中文字。
+    ----------------------------------------------------- */
+
+    stage.addEventListener(
+      "click",
+      () => {
+
+        if (
+          bookState.progress < .02
+          &&
+          !animating
+        ) {
+
+          openBook();
+
+        }
+
+      }
+    );
+
+
+
+    /* -----------------------------------------------------
+       WHEEL HORIZONTAL EXPLORE
+    ----------------------------------------------------- */
+
+    stage.addEventListener(
+      "wheel",
+      handleWheel,
+      {
+        passive: false
+      }
+    );
+
+
+
+    /* -----------------------------------------------------
+       FIRST RENDER
+    ----------------------------------------------------- */
+
+    renderBook();
+
+
+    counter.textContent =
+      `aota · ${panels.length} panels`;
+
+
+    hint.textContent =
+      "CLICK TO UNFOLD";
+
+
+    loading.classList.add(
+      "hidden"
+    );
+
+
+  }
+
+  catch(error) {
+
+    showError(
+      "AOTA LOAD ERROR",
+      error
+    );
+
+  }
+
+}
+
+
+
+/* =========================================================
+   PAGE SIZE
+========================================================= */
+
+function calculatePageSize() {
+
+  pageSize =
+    Math.round(
+      window.innerHeight
+      *
+      PAGE_HEIGHT_RATIO
+    );
+
+
+  /*
+    封面状态避免在小屏上太宽。
+  */
+
+  pageSize =
+    Math.min(
+
+      pageSize,
+
+      Math.round(
+        window.innerWidth
+        *
+        .58
+      )
+
+    );
+
+
+  /*
+    偶数 pixel，
+    Retina 下稍微稳定一点。
+  */
+
+  if (
+    pageSize % 2 !== 0
+  ) {
+
+    pageSize += 1;
+
+  }
+
+
+  document
+    .documentElement
+    .style
+    .setProperty(
+
+      "--page-size",
+
+      `${pageSize}px`
+
+    );
+
+}
+
+
+
+/* =========================================================
+   PDF → SQUARE PANELS
+
+   aota PDF：
+
+   第一页：
+   单页正方形封面
+
+   中间：
+   横向双页 PDF
+   自动切 Left / Right
+
+   最后：
+   单页正方形封底
+========================================================= */
+
+async function renderPDFPageToPanels(pageNumber) {
+  const indices=pageNumber===1?[1]:pageNumber===10?[18]:[pageNumber*2-2,pageNumber*2-1];
+  return await Promise.all(indices.map(async number=>{
+    const image=new Image();image.src=`../../books/aota/${String(number).padStart(3,"0")}.webp`;
+    await image.decode();const canvas=document.createElement("canvas");canvas.width=image.naturalWidth;canvas.height=image.naturalHeight;
+    canvas.getContext("2d").drawImage(image,0,0);return canvas;
+  }));
+}
+
+
+function makeSquarePanel(
+  source,
+  sx,
+  sw,
+  sh
+) {
+
+  /*
+    aota 原稿本身就是正方形，
+    所以输出尺寸按高度。
+  */
+
+  const outputSize =
+    Math.round(
+      sh
+    );
+
+
+  const canvas =
+    document.createElement(
+      "canvas"
+    );
+
+
+  canvas.width =
+    outputSize;
+
+
+  canvas.height =
+    outputSize;
+
+
+  const context =
+    canvas.getContext(
+      "2d",
+      {
+        alpha:
+          false
+      }
+    );
+
+
+  context.imageSmoothingEnabled =
+    true;
+
+
+  context.imageSmoothingQuality =
+    "high";
+
+
+  context.fillStyle =
+    "#ffffff";
+
+
+  context.fillRect(
+    0,
+    0,
+    outputSize,
+    outputSize
+  );
+
+
+  context.drawImage(
+
+    source,
+
+    sx,
+    0,
+    sw,
+    sh,
+
+    0,
+    0,
+    outputSize,
+    outputSize
+
+  );
+
+
+  canvas.style.width =
+    "100%";
+
+
+  canvas.style.height =
+    "100%";
+
+
+  return canvas;
+
+}
+
+
+
+/* =========================================================
+   CORE RENDER
+
+   这里是这版跟上一版最大的区别。
+
+   每一页的左边缘坐标：
+
+       x
+       z
+
+   都来自上一页的右边缘。
+
+   所以：
+
+   panel 1
+        ↓
+   hinge
+        ↓
+   panel 2
+        ↓
+   hinge
+        ↓
+   panel 3
+
+   是一条真正连续的 chain。
+========================================================= */
+
+function renderBook() {
+
+  if (
+    panels.length === 0
+  ) {
+
+    return;
+
+  }
+
+
+  const progress =
+    clamp(
+      bookState.progress,
+      0,
+      1
+    );
+
+
+  const easedProgress =
+    smoothStep(
+      progress
+    );
+
+
+
+  /* -------------------------------------------------------
+     FOLD ANGLE
+
+     closed：
+     82°
+
+     open：
+     0°
+  ------------------------------------------------------- */
+
+  const foldAngle =
+    MAX_FOLD_ANGLE
+    *
+    (
+      1
+      -
+      easedProgress
+    );
+
+
+
+  /* -------------------------------------------------------
+     CHAIN POSITION
+
+     第一个 panel 从 0,0 开始。
+
+     后面的每一页都从上一页右边缘继续。
+  ------------------------------------------------------- */
+
+  let currentX =
+    0;
+
+
+  let currentZ =
+    0;
+
+
+
+  panels.forEach(
+    (
+      panel,
+      index
+    ) => {
+
+
+      /* ---------------------------------------------------
+         GLOBAL PANEL ANGLE
+
+         cover 始终面对我们。
+
+         后面的 panel：
+         +angle
+         -angle
+         +angle
+         -angle
+
+         形成真实 accordion zig-zag。
+      --------------------------------------------------- */
+
+      let angle =
+        0;
+
+
+      if (
+        index > 0
+      ) {
+
+        angle =
+          index % 2 === 1
+
+            ? foldAngle
+
+            : -foldAngle;
+
+      }
+
+
+
+      /* ---------------------------------------------------
+         PANEL TRANSFORM
+      --------------------------------------------------- */
+
+      panel.style.transform =
+        `
+          translate3d(
+            ${currentX}px,
+            0px,
+            ${currentZ}px
+          )
+
+          rotateY(
+            ${angle}deg
+          )
+        `;
+
+
+
+      /* ---------------------------------------------------
+         VISIBILITY
+
+         刚开始只有封面。
+
+         展开的前一点，
+         后面的折页柔和出现。
+      --------------------------------------------------- */
+
+      if (
+        index === 0
+      ) {
+
+        panel.style.opacity =
+          "1";
+
+      }
+
+      else {
+
+        const opacity =
+          clamp(
+            progress * 5,
+            0,
+            1
+          );
+
+
+        panel.style.opacity =
+          String(
+            opacity
+          );
+
+      }
+
+
+
+      /* ---------------------------------------------------
+         FOLD LIGHT
+
+         书完全展开后，
+         阴影自动完全消失。
+
+         所以平铺状态不会有一堆灰线。
+      --------------------------------------------------- */
+
+      const light =
+        panel.querySelector(
+          ".fold-light"
+        );
+
+
+      if (
+        light
+      ) {
+
+        const lightOpacity =
+          (
+            1
+            -
+            easedProgress
+          )
+          *
+          .72;
+
+
+        light.style.opacity =
+          String(
+            lightOpacity
+          );
+
+      }
+
+
+
+      /* ---------------------------------------------------
+         CALCULATE THIS PANEL RIGHT EDGE
+
+         CSS rotateY(angle) 下：
+
+         Δx = width × cos(angle)
+         Δz = -width × sin(angle)
+
+         下一页从这里接着走。
+      --------------------------------------------------- */
+
+      const radians =
+        angle
+        *
+        Math.PI
+        /
+        180;
+
+
+      currentX +=
+        pageSize
+        *
+        Math.cos(
+          radians
+        );
+
+
+      currentZ +=
+        -pageSize
+        *
+        Math.sin(
+          radians
+        );
+
+    }
+  );
+
+
+
+  /* =======================================================
+     WORLD X POSITION
+  ======================================================= */
+
+  const viewportWidth =
+    window.innerWidth;
+
+
+  const viewportHeight =
+    window.innerHeight;
+
+
+
+  /*
+    CLOSED
+
+    封面正中间。
+  */
+
+  const closedX =
+    viewportWidth
+    /
+    2
+    -
+    pageSize
+    /
+    2;
+
+
+
+  /*
+    OPEN
+
+    如果整条书短，
+    完全居中。
+
+    如果整条书长，
+    左边留固定 margin，
+    后面通过 drag 浏览。
+  */
+
+  let openX;
+
+
+  if (
+    openBookWidth
+    <=
+    viewportWidth
+    -
+    OPEN_SIDE_MARGIN * 2
+  ) {
+
+    openX =
+      (
+        viewportWidth
+        -
+        openBookWidth
+      )
+      /
+      2;
+
+  }
+
+  else {
+
+    openX =
+      OPEN_SIDE_MARGIN;
+
+  }
+
+
+
+  /*
+    展开时，
+    封面从中央自然移动到左边。
+  */
+
+  const baseX =
+    lerp(
+      closedX,
+      openX,
+      easedProgress
+    );
+
+
+
+  const baseY =
+    viewportHeight
+    /
+    2
+    -
+    pageSize
+    /
+    2;
+
+
+
+  world.style.transform =
+    `
+      translate3d(
+        ${baseX + panX}px,
+        ${baseY}px,
+        0px
+      )
+    `;
+
+
+
+  /* =======================================================
+     FLOOR SHADOW
+  ======================================================= */
+
+  const shadowWidth =
+    lerp(
+      pageSize * .82,
+      Math.min(
+        viewportWidth * .72,
+        pageSize * 2.7
+      ),
+      easedProgress
+    );
+
+
+  floorShadow.style.width =
+    `${shadowWidth}px`;
+
+
+  floorShadow.style.opacity =
+    String(
+      lerp(
+        .42,
+        .16,
+        easedProgress
+      )
+    );
+
+
+
+  /* =======================================================
+     BODY STATE
+  ======================================================= */
+
+  if (
+    progress > .995
+  ) {
+
+    document.body.classList.add(
+      "book-open"
+    );
+
+  }
+
+  else {
+
+    document.body.classList.remove(
+      "book-open"
+    );
+
+  }
+
+}
+
+
+
+/* =========================================================
+   OPEN BOOK
+========================================================= */
+
+function openBook() {
+
+  if (
+    animating
+    ||
+    bookState.progress > .02
+  ) {
+
+    return;
+
+  }
+
+
+  animating =
+    true;
+
+
+  disablePan();
+
+
+  hint.textContent =
+    "UNFOLDING";
+
+
+  gsap.to(
+    bookState,
+    {
+
+      progress:
+        1,
+
+      duration:
+        OPEN_DURATION,
+
+      ease:
+        "power3.inOut",
+
+      onUpdate:
+        renderBook,
+
+      onComplete:
+        () => {
+
+          bookState.progress =
+            1;
+
+
+          renderBook();
+
+
+          animating =
+            false;
+
+
+          setupPan();
+
+
+          if (
+            canPanBook()
+          ) {
+
+            hint.textContent =
+              "DRAG LEFT / RIGHT";
+
+          }
+
+          else {
+
+            hint.textContent =
+              "FULL VIEW";
+
+          }
+
+        }
+
+    }
+  );
+
+}
+
+
+
+/* =========================================================
+   CLOSE BOOK
+========================================================= */
+
+function closeBook() {
+
+  if (
+    animating
+  ) {
+
+    return;
+
+  }
+
+
+  animating =
+    true;
+
+
+  disablePan();
+
+
+  panX =
+    0;
+
+
+  gsap.set(
+    dragProxy,
+    {
+      x: 0
+    }
+  );
+
+
+  hint.textContent =
+    "CLOSING";
+
+
+  gsap.to(
+    bookState,
+    {
+
+      progress:
+        0,
+
+      duration:
+        CLOSE_DURATION,
+
+      ease:
+        "power3.inOut",
+
+      onUpdate:
+        renderBook,
+
+      onComplete:
+        () => {
+
+          bookState.progress =
+            0;
+
+
+          panX =
+            0;
+
+
+          renderBook();
+
+
+          animating =
+            false;
+
+
+          hint.textContent =
+            "CLICK TO UNFOLD";
+
+        }
+
+    }
+  );
+
+}
+
+
+
+/* =========================================================
+   PAN BOUNDS
+========================================================= */
+
+function getPanBounds() {
+
+  const viewportWidth =
+    window.innerWidth;
+
+
+  const openX =
+    OPEN_SIDE_MARGIN;
+
+
+  const minX =
+    Math.min(
+
+      0,
+
+      viewportWidth
+
+      -
+      OPEN_SIDE_MARGIN
+
+      -
+      openX
+
+      -
+      openBookWidth
+
+    );
+
+
+  return {
+
+    minX:
+      minX,
+
+    maxX:
+      0
+
+  };
+
+}
+
+
+
+/* =========================================================
+   CAN PAN?
+========================================================= */
+
+function canPanBook() {
+
+  return (
+    openBookWidth
+    >
+    window.innerWidth
+    -
+    OPEN_SIDE_MARGIN * 2
+  );
+
+}
+
+
+
+/* =========================================================
+   SETUP GSAP DRAGGABLE
+========================================================= */
+
+function setupPan() {
+
+  disablePan();
+
+
+  stage.classList.remove(
+    "can-pan",
+    "dragging"
+  );
+
+
+  if (
+    !canPanBook()
+  ) {
+
+    panX =
+      0;
+
+
+    renderBook();
+
+
+    return;
+
+  }
+
+
+
+  stage.classList.add(
+    "can-pan"
+  );
+
+
+  const bounds =
+    getPanBounds();
+
+
+
+  panDraggable =
+    Draggable.create(
+      dragProxy,
+      {
+
+        type:
+          "x",
+
+        trigger:
+          stage,
+
+        bounds:
+          bounds,
+
+        minimumMovement:
+          3,
+
+        dragResistance:
+          0.05,
+
+        edgeResistance:
+          0.88,
+
+
+        onPress:
+          function() {
+
+            stage.classList.add(
+              "dragging"
+            );
+
+          },
+
+
+        onDrag:
+          function() {
+
+            panX =
+              this.x;
+
+
+            renderBook();
+
+          },
+
+
+        onRelease:
+          function() {
+
+            stage.classList.remove(
+              "dragging"
+            );
+
+          },
+
+
+        onDragEnd:
+          function() {
+
+            stage.classList.remove(
+              "dragging"
+            );
+
+          }
+
+      }
+    )[0];
+
+
+
+  /*
+    如果 resize / reset 之后重新创建，
+    把当前 pan 同步过去。
+  */
+
+  gsap.set(
+    dragProxy,
+    {
+      x:
+        panX
+    }
+  );
+
+
+  panDraggable.update(
+    true
+  );
+
+}
+
+
+
+/* =========================================================
+   DISABLE PAN
+========================================================= */
+
+function disablePan() {
+
+  stage.classList.remove(
+    "can-pan",
+    "dragging"
+  );
+
+
+  if (
+    panDraggable
+  ) {
+
+    panDraggable.kill();
+
+
+    panDraggable =
+      null;
+
+  }
+
+}
+
+
+
+/* =========================================================
+   MOUSE / TRACKPAD WHEEL
+
+   打开以后：
+   横向滚动或者普通滚轮，
+   都可以浏览整条 aota。
+========================================================= */
+
+function handleWheel(
+  event
+) {
+
+  if (
+    bookState.progress < .995
+    ||
+    !canPanBook()
+    ||
+    animating
+  ) {
+
+    return;
+
+  }
+
+
+  event.preventDefault();
+
+
+  const bounds =
+    getPanBounds();
+
+
+
+  let delta;
+
+
+  if (
+    Math.abs(
+      event.deltaX
+    )
+    >
+    Math.abs(
+      event.deltaY
+    )
+  ) {
+
+    delta =
+      event.deltaX;
+
+  }
+
+  else {
+
+    delta =
+      event.deltaY;
+
+  }
+
+
+
+  panX =
+    clamp(
+
+      panX
+      -
+      delta,
+
+      bounds.minX,
+
+      bounds.maxX
+
+    );
+
+
+  gsap.set(
+    dragProxy,
+    {
+      x:
+        panX
+    }
+  );
+
+
+  if (
+    panDraggable
+  ) {
+
+    panDraggable.update();
+
+  }
+
+
+  renderBook();
+
+}
+
+
+
+/* =========================================================
+   RESET
+========================================================= */
+
+reset.addEventListener(
+  "click",
+  event => {
+
+    event.stopPropagation();
+
+
+    closeBook();
+
+  }
+);
+
+
+
+/* =========================================================
+   RESIZE
+========================================================= */
+
+window.addEventListener(
+  "resize",
+  () => {
+
+    /*
+      PDF Canvas 不重新 render，
+      避免 resize 时重新加载全部 PDF。
+
+      这里只重新调整位置和拖动范围。
+    */
+
+    if (
+      bookState.progress > .995
+    ) {
+
+      const bounds =
+        getPanBounds();
+
+
+      panX =
+        clamp(
+          panX,
+          bounds.minX,
+          bounds.maxX
+        );
+
+
+      gsap.set(
+        dragProxy,
+        {
+          x:
+            panX
+        }
+      );
+
+
+      setupPan();
+
+    }
+
+
+    renderBook();
+
+  }
+);
+
+
+
+/* =========================================================
+   FUTURE PORTFOLIO HOOKS
+
+   后面接三本书总页面时可以直接调用：
+
+   openAotaBook()
+   closeAotaBook()
+========================================================= */
+
+window.openAotaBook =
+  function() {
+
+    openBook();
+
+  };
+
+
+window.closeAotaBook =
+  function() {
+
+    closeBook();
+
+  };
+
+
+
+/* =========================================================
+   START
+========================================================= */
+
+init();
+
+</script>
+
+</body>
+
+</html>

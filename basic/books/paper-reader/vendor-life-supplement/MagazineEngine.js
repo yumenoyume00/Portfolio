@@ -1,0 +1,1227 @@
+import * as THREE from 'three';
+import { createBakedSheetGeometry, SHEET_ASPECT } from './noiseBaker.js?v=18';
+import { VERTEX_DECLARATIONS, NORMAL_RECOMPUTE, DEPTH_VERTEX_POSITION, FRAGMENT_HEADER, MAP_FRAGMENT, ROUGHNESS_FRAGMENT, OPAQUE_FRAGMENT, NORMAL_FRAGMENT, } from './shaders.js?v=18';
+import { CANVAS_WIDTH, CANVAS_HEIGHT } from './pageLayout.js?v=18';
+import { getCachedPageImage, loadPageImage } from './pageImages.js?v=18';
+import { pageImageUrls } from './figureFlow.js?v=18';
+import { renderPageBase, paintEditOverlay } from './pageRenderer.js?v=18';
+import { paintReaderOverlay } from './reader/overlayPainter.js?v=18';
+import { pageToSheet, planFlipChain } from './spread.js?v=18';
+import { desktopPageRange, planTextures } from './textureWindow.js?v=18';
+export class MagazineEngine {
+    container;
+    pageContents;
+    patternUrl;
+    renderOptions;
+    onPageChange;
+    onProgress;
+    onReady;
+    scene;
+    camera;
+    renderer;
+    canvas;
+    hitArea;
+    resizeObserver;
+    abortController = new AbortController();
+    // Sheets data
+    totalSheets;
+    currentSheetIndex = 0; // A: 0..totalSheets
+    sheets = [];
+    animations = [];
+    /** 只有窗口内的页才有纹理，窗口外为 undefined */
+    pageTextures = [];
+    textureRadius;
+    farSyncTimer = null;
+    /** goToSheet 逐张翻页的定时器，跳页或再次跳转时需要取消 */
+    flipTimers = [];
+    patternTexture = null;
+    placeholderTex;
+    // Native 3D Editor state
+    isEditMode = false;
+    pageEditStates = {};
+    pageReaderOverlays = {};
+    pointerInterceptor = null;
+    /** 每页不含覆盖层的底图缓存，hover/光标闪烁只需合成覆盖层 */
+    pageBases = [];
+    /** 每页复用的纹理画布，避免每次交互重新分配 11MB 位图 */
+    pageCanvases = [];
+    // Interaction & Physics state
+    lastActiveSheet = -1;
+    hoverSheet = -1;
+    pointerX = 0;
+    pointerY = 0;
+    isPointerInside = false;
+    pointerDownPos = null;
+    dragState = null;
+    autoFlipState = null;
+    lastHitAreaInset = '';
+    needsRender = true;
+    lastFrameTime = 0;
+    isDisposed = false;
+    isEngineReady = false;
+    // Constants identical to paper.design
+    S = {
+        angleMaxDeg: 45,
+        curlArc: 0.88,
+        curlArcJitter: 0.2,
+        curlAngleJitter: 0.3,
+        curlTiltJitterDeg: 6,
+        cornerRollMax: 2.3,
+        directionSmoothTime: 0.4,
+        settleEpsilon: 1e-4,
+        curveSmoothTime: 0.5,
+    };
+    Hover = {
+        progress: 0.03,
+        smoothTime: 2,
+        gapToSheetAbove: 0.1,
+    };
+    AutoFlip = {
+        startTime: 0.22,
+        firstFlipTime: 1.2,
+        fastestFlipTime: 0.5,
+        speedUpSheets: 20,
+        firstGapShare: 0.15,
+        fastestGapShare: 0.05,
+        moveSlopPx: 40,
+    };
+    DragPhysics = {
+        turnFraction: 0.8,
+        progressSmoothTime: 0.9,
+        fallTime: 1,
+        fallTimeExponent: 0.5,
+        landingSpeed: 0.5,
+        commitProgress: 0.2,
+        clickSlopPx: 5,
+    };
+    FlipSettings = {
+        flipTime: 0.85,
+        followArcGainMin: 1,
+        followArcGainMax: 1.08,
+    };
+    // Reusable math objects
+    raycaster = new THREE.Raycaster();
+    mouseVec = new THREE.Vector2();
+    groundPlane = new THREE.Plane(new THREE.Vector3(0, 0, 1), 0);
+    intersectPoint = new THREE.Vector3();
+    constructor(options) {
+        this.container = options.container;
+        this.pageContents = options.pageContents;
+        this.patternUrl = options.patternUrl;
+        this.renderOptions = options.renderOptions || {};
+        this.onPageChange = options.onPageChange;
+        this.onProgress = options.onProgress;
+        this.onReady = options.onReady;
+        this.textureRadius = Math.max(1, Math.trunc(options.textureRadius ?? 2));
+        this.totalSheets = Math.ceil(this.pageContents.length / 2);
+        this.currentSheetIndex = Math.min(Math.max(Math.trunc(options.initialSheet ?? 0), 0), this.totalSheets);
+        // Setup Three.js scene
+        this.scene = new THREE.Scene();
+        this.camera = new THREE.PerspectiveCamera(40, 1.44753, 1.5, 4.5);
+        this.camera.position.set(0, 0, 3.0703);
+        this.camera.lookAt(0, 0, 0);
+        this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        this.renderer.shadowMap.enabled = true;
+        this.renderer.shadowMap.type = THREE.PCFShadowMap;
+        this.renderer.shadowMap.autoUpdate = false;
+        this.renderer.shadowMap.needsUpdate = true;
+        this.canvas = this.renderer.domElement;
+        this.canvas.dataset.magazineLayer = '';
+        this.canvas.style.display = 'block';
+        this.canvas.style.position = 'absolute';
+        this.canvas.style.top = '-27.975%';
+        this.canvas.style.left = '-27.975%';
+        this.canvas.style.width = '155.95%';
+        this.canvas.style.height = '155.95%';
+        this.canvas.style.pointerEvents = 'none';
+        this.container.appendChild(this.canvas);
+        // Hit area overlay
+        this.hitArea = document.createElement('div');
+        this.hitArea.dataset.magazineHitArea = '';
+        this.hitArea.style.cssText =
+            'position:absolute;inset:0 0 0 50%;pointer-events:auto;touch-action:pan-y pinch-zoom;cursor:pointer;';
+        this.container.appendChild(this.hitArea);
+        this.container.style.setProperty('-webkit-touch-callout', 'none');
+        this.container.style.setProperty('-webkit-user-select', 'none');
+        this.container.style.setProperty('user-select', 'none');
+        // Lights
+        const lightGroup = new THREE.Group();
+        this.scene.add(lightGroup);
+        const hemiLight = new THREE.HemisphereLight('#ffffff', '#a1aeaf', 1.5);
+        lightGroup.add(hemiLight);
+        const dirLight = new THREE.DirectionalLight('#ffffff', 2.0);
+        dirLight.position.set(-3.5, 1.3, 4.1);
+        dirLight.castShadow = true;
+        dirLight.shadow.mapSize.set(2048, 2048);
+        dirLight.shadow.camera.left = -0.8;
+        dirLight.shadow.camera.right = 1.0;
+        dirLight.shadow.camera.top = 0.85;
+        dirLight.shadow.camera.bottom = -1.05;
+        dirLight.shadow.camera.near = 1.5;
+        dirLight.shadow.camera.far = 6.6;
+        dirLight.shadow.bias = -0.001;
+        lightGroup.add(dirLight);
+        lightGroup.add(dirLight.target);
+        // Ground shadow plane
+        const shadowGeo = new THREE.PlaneGeometry(6.25, 6.25);
+        const shadowMat = new THREE.ShadowMaterial({ opacity: 0.15 });
+        const shadowMesh = new THREE.Mesh(shadowGeo, shadowMat);
+        shadowMesh.position.z = -1e-5;
+        shadowMesh.receiveShadow = true;
+        this.scene.add(shadowMesh);
+        // Placeholder textures
+        this.placeholderTex = new THREE.DataTexture(new Uint8Array([250, 247, 242, 255]), 1, 1);
+        this.placeholderTex.colorSpace = THREE.SRGBColorSpace;
+        this.placeholderTex.needsUpdate = true;
+        // Create sheet meshes
+        this.createSheets();
+        // Event listeners
+        this.bindEvents();
+        // Resize observer
+        this.resizeObserver = new ResizeObserver(() => this.handleResize());
+        this.resizeObserver.observe(this.canvas);
+        this.handleResize();
+        // 只为当前对开页附近的页生成纹理，其余页翻到时再绘制
+        this.initPatternTexture();
+        this.renderAllPageTextures();
+        // Re-render once web fonts (such as LXGW WenKai) finish loading in browser
+        if (typeof document !== 'undefined' && 'fonts' in document) {
+            document.fonts.ready.then(() => {
+                if (!this.isDisposed) {
+                    this.renderAllPageTextures();
+                }
+            });
+        }
+        // Start animation loop
+        this.renderer.setAnimationLoop(this.animate.bind(this));
+    }
+    stackLift(sheetIndex, isFlipped) {
+        return (0.31 +
+            0.69 *
+                (this.totalSheets > 1
+                    ? (sheetIndex + (this.totalSheets - 1 - 2 * sheetIndex) * (1 - isFlipped)) /
+                        (this.totalSheets - 1)
+                    : 1));
+    }
+    isSheetAnimating(sheetIndex) {
+        return this.animations.some((a) => a.sheetIndex === sheetIndex);
+    }
+    createSheets() {
+        const geometry = createBakedSheetGeometry(64, 88);
+        const blackTex = new THREE.DataTexture(new Uint8Array([0, 0, 0, 255]), 1, 1);
+        blackTex.needsUpdate = true;
+        for (let i = 0; i < this.totalSheets; i++) {
+            const uniforms = {
+                uLeafWidth: { value: Math.max(1, 1) },
+                uFrontStep: { value: -1 }, uBackStep: { value: -1 },
+                uFrontWidth: { value: 1 }, uBackWidth: { value: 1 },
+                uSurfaceRoughness: { value: new THREE.Vector2(0.95, 0.95) },
+                uDirection: { value: 1.0 },
+                uStackLift: { value: 1.0 },
+                uFlipProgress: { value: 0.0 },
+                uWrinkleSide: { value: -1.0 },
+                uBendAngle: { value: 0.0 },
+                uFold: { value: new THREE.Vector2(1, 0) },
+                uCurl: { value: new THREE.Vector2(0, 1) },
+                uFlipRotation: { value: new THREE.Vector2(1, 0) },
+                uPatternTex: { value: blackTex },
+                uBackMap: { value: this.placeholderTex },
+            };
+            const material = new THREE.MeshStandardMaterial({
+                map: this.placeholderTex,
+                side: THREE.DoubleSide,
+                metalness: 0,
+                roughness: 0.95,
+            });
+            material.onBeforeCompile = (shader) => {
+                Object.assign(shader.uniforms, uniforms);
+                shader.vertexShader = VERTEX_DECLARATIONS + shader.vertexShader;
+                shader.vertexShader = shader.vertexShader.replace('#include <beginnormal_vertex>', `#include <beginnormal_vertex>\n{\n${NORMAL_RECOMPUTE}\nobjectNormal = surfaceNormal;\n}\n`);
+                shader.vertexShader = shader.vertexShader.replace('#include <begin_vertex>', `vec3 transformed = _transformedSheetPosition;\nvGrainUv = uv;\n`);
+                shader.fragmentShader =
+                    FRAGMENT_HEADER + shader.fragmentShader;
+                shader.fragmentShader = shader.fragmentShader.replace('#include <normal_fragment_begin>', NORMAL_FRAGMENT);
+                shader.fragmentShader = shader.fragmentShader.replace('#include <map_fragment>', MAP_FRAGMENT);
+                shader.fragmentShader = shader.fragmentShader.replace('#include <roughnessmap_fragment>', ROUGHNESS_FRAGMENT);
+                shader.fragmentShader = shader.fragmentShader.replace('#include <opaque_fragment>', OPAQUE_FRAGMENT);
+            };
+            const depthMaterial = new THREE.MeshDepthMaterial({
+                depthPacking: THREE.RGBADepthPacking,
+                side: THREE.DoubleSide,
+            });
+            depthMaterial.onBeforeCompile = (shader) => {
+                Object.assign(shader.uniforms, uniforms);
+                shader.vertexShader = VERTEX_DECLARATIONS + shader.vertexShader;
+                shader.vertexShader = shader.vertexShader.replace('#include <begin_vertex>', `${DEPTH_VERTEX_POSITION}\nvec3 transformed = _transformedSheetPosition - vec3(SHADOW_OFFSET_X, 0., 0.);\n`);
+            };
+            const mesh = new THREE.Mesh(geometry, material);
+            mesh.customDepthMaterial = depthMaterial;
+            mesh.castShadow = true;
+            mesh.receiveShadow = true;
+            const baseLift = this.stackLift(i, 0);
+            const spanLift = this.stackLift(i, 1) - baseLift;
+            const sheetData = {
+                mesh,
+                sheetUniforms: uniforms,
+                frontTex: this.placeholderTex,
+                flipProgress: i < this.currentSheetIndex ? 1 : 0,
+                direction: 1,
+                directionSmooth: 1,
+                curve: { curlArc: 0, curlAngleDeg: 0 },
+                curveTarget: { curlArc: 0, curlAngleDeg: 0 },
+                wobble: { arc: 0.5, angle: 0.5, tilt: 0 },
+                stackLiftBase: baseLift,
+                stackLiftSpan: spanLift,
+            };
+            this.sheets.push(sheetData);
+            this.scene.add(mesh);
+        }
+    }
+    initPatternTexture() {
+        if (this.patternUrl) {
+            new THREE.TextureLoader().load(this.patternUrl, (tex) => {
+                tex.wrapS = THREE.RepeatWrapping;
+                tex.wrapT = THREE.RepeatWrapping;
+                tex.anisotropy = this.renderer.capabilities.getMaxAnisotropy();
+                this.patternTexture = tex;
+                for (const s of this.sheets) {
+                    s.sheetUniforms.uPatternTex.value = tex;
+                }
+                this.renderer.initTexture(tex);
+                this.needsRender = true;
+            }, undefined, () => {
+                this.createProceduralPatternTexture();
+            });
+        }
+        else {
+            this.createProceduralPatternTexture();
+        }
+    }
+    createProceduralPatternTexture() {
+        // Generate fine paper fiber roughness procedural texture
+        const pCanvas = document.createElement('canvas');
+        pCanvas.width = 384;
+        pCanvas.height = 384;
+        const pCtx = pCanvas.getContext('2d');
+        const imgData = pCtx.createImageData(384, 384);
+        const data = imgData.data;
+        for (let i = 0; i < data.length; i += 4) {
+            const v = 110 + Math.floor(Math.random() * 50);
+            data[i] = v;
+            data[i + 1] = v;
+            data[i + 2] = v;
+            data[i + 3] = 255;
+        }
+        pCtx.putImageData(imgData, 0, 0);
+        const tex = new THREE.CanvasTexture(pCanvas);
+        tex.wrapS = THREE.RepeatWrapping;
+        tex.wrapT = THREE.RepeatWrapping;
+        tex.anisotropy = this.renderer.capabilities.getMaxAnisotropy();
+        this.patternTexture = tex;
+        for (const s of this.sheets) {
+            s.sheetUniforms.uPatternTex.value = tex;
+        }
+        this.renderer.initTexture(tex);
+        this.needsRender = true;
+    }
+    /** 将页面画布提交为 CanvasTexture，并绑定到对应印张的正/背面材质 */
+    applyPageCanvas(pageIndex, canvas) {
+        let tex = this.pageTextures[pageIndex];
+        if (!tex) {
+            tex = new THREE.CanvasTexture(canvas);
+            tex.colorSpace = THREE.SRGBColorSpace;
+            tex.anisotropy = this.renderer.capabilities.getMaxAnisotropy();
+            this.pageTextures[pageIndex] = tex;
+            this.renderer.initTexture(tex);
+        }
+        else {
+            tex.image = canvas;
+            tex.needsUpdate = true;
+        }
+        const sheet = this.sheets[pageIndex >> 1];
+        if (!sheet)
+            return;
+        if (pageIndex % 2 === 0) {
+            sheet.frontTex = tex;
+            const material = sheet.mesh.material;
+            if (material.map !== tex) {
+                material.map = tex;
+                material.needsUpdate = true;
+            }
+        }
+        else {
+            sheet.sheetUniforms.uBackMap.value = tex;
+        }
+    }
+    /** 异步加载页面用到的图片，就绪后若该页仍引用同一地址则重绘 */
+    loadImagesForPage(pageIndex, page) {
+        for (const url of pageImageUrls(page)) {
+            if (getCachedPageImage(url))
+                continue;
+            void loadPageImage(url).then((image) => {
+                if (!image || this.isDisposed)
+                    return;
+                const current = this.pageContents[pageIndex];
+                if (!current || !pageImageUrls(current).includes(url))
+                    return;
+                this.composePage(pageIndex, true);
+            });
+        }
+    }
+    /**
+     * 底图 + 当前编辑覆盖层 → 纹理；rebuildBase 为 true 时重新排版绘制底图。
+     * 没有纹理的页（窗口外）只记录内容与覆盖层状态，进入窗口时再绘制；force 用于窗口内首次建立纹理。
+     */
+    composePage(pageIndex, rebuildBase, force = false) {
+        const page = this.pageContents[pageIndex];
+        if (!page)
+            return;
+        if (!force && !this.pageTextures[pageIndex])
+            return;
+        this.loadImagesForPage(pageIndex, page);
+        const readerOverlay = this.pageReaderOverlays[pageIndex];
+        const paintReader = !!readerOverlay && !this.isEditMode;
+        const editState = this.pageEditStates[pageIndex];
+        const hasOverlay = paintReader || !!editState;
+        // 无覆盖层且底图没变：纹理已经是干净的底图
+        if (!hasOverlay && !rebuildBase && !force && !this.pageBases[pageIndex])
+            return;
+        let base = this.pageBases[pageIndex];
+        if (!base || rebuildBase) {
+            base = renderPageBase(page, this.renderOptions);
+        }
+        if (!hasOverlay) {
+            // 无覆盖层：底图画布直接作纹理，不再另存一份合成画布（每页省 11MB）
+            this.pageBases[pageIndex] = undefined;
+            this.pageCanvases[pageIndex] = undefined;
+            this.applyPageCanvas(pageIndex, base);
+            this.needsRender = true;
+            return;
+        }
+        this.pageBases[pageIndex] = base;
+        let canvas = this.pageCanvases[pageIndex];
+        if (!canvas) {
+            canvas = document.createElement('canvas');
+            canvas.width = base.width;
+            canvas.height = base.height;
+            this.pageCanvases[pageIndex] = canvas;
+        }
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(base, 0, 0);
+        if (paintReader && readerOverlay) {
+            paintReaderOverlay(ctx, page, pageIndex, readerOverlay, this.renderOptions.accentColor ?? '#9B2D26');
+        }
+        if (editState) {
+            paintEditOverlay(ctx, page, this.renderOptions, editState);
+        }
+        this.applyPageCanvas(pageIndex, canvas);
+        this.needsRender = true;
+    }
+    // ---------- 纹理窗口 ----------
+    pageRange(radius) {
+        return desktopPageRange(this.currentSheetIndex, this.totalSheets, this.pageContents.length, radius);
+    }
+    heldPages() {
+        const held = [];
+        this.pageTextures.forEach((t, i) => t && held.push(i));
+        return held;
+    }
+    isSheetBusy(sheetIndex) {
+        return this.isSheetAnimating(sheetIndex) || this.dragState?.sheetIndex === sheetIndex;
+    }
+    /** 释放一页的纹理与画布，材质退回占位纹理 */
+    releasePage(pageIndex) {
+        const tex = this.pageTextures[pageIndex];
+        if (!tex)
+            return;
+        const images = [tex.image, this.pageBases[pageIndex], this.pageCanvases[pageIndex]];
+        tex.dispose();
+        this.pageTextures[pageIndex] = undefined;
+        this.pageBases[pageIndex] = undefined;
+        this.pageCanvases[pageIndex] = undefined;
+        const sheet = this.sheets[pageIndex >> 1];
+        if (sheet) {
+            if (pageIndex % 2 === 0) {
+                sheet.frontTex = this.placeholderTex;
+                const material = sheet.mesh.material;
+                material.map = this.placeholderTex;
+                material.needsUpdate = true;
+            }
+            else {
+                sheet.sheetUniforms.uBackMap.value = this.placeholderTex;
+            }
+        }
+        // 立刻归还位图内存（Safari 等对画布总量有硬上限，不能等 GC）
+        for (const img of images) {
+            if (img instanceof HTMLCanvasElement) {
+                img.width = 0;
+                img.height = 0;
+            }
+        }
+    }
+    /** 释放窗口之外的页；正在翻动的纸张暂不释放，避免动画中途变成空白 */
+    releaseOutsideWindow() {
+        const { release } = planTextures(this.heldPages(), this.pageRange(this.textureRadius), 2);
+        for (const i of release) {
+            if (!this.isSheetBusy(i >> 1))
+                this.releasePage(i);
+        }
+    }
+    /**
+     * 对齐纹理窗口：紧邻当前对开页的页立刻绘制（翻页时马上要露出来），
+     * 更远的页和释放工作延后到空闲时，不挤占翻页动画的帧。
+     */
+    syncTextures(nearRadius = 1) {
+        const [lo, hi] = this.pageRange(Math.min(nearRadius, this.textureRadius));
+        for (const i of planTextures(this.heldPages(), [lo, hi], 0).build) {
+            this.composePage(i, true, true);
+        }
+        this.releaseOutsideWindow();
+        this.scheduleFarSync();
+        this.onProgress?.(Math.min(hi + 1, this.pageContents.length), this.pageContents.length);
+    }
+    scheduleFarSync() {
+        if (this.farSyncTimer !== null)
+            return;
+        this.farSyncTimer = setTimeout(() => {
+            this.farSyncTimer = null;
+            if (this.isDisposed)
+                return;
+            // 翻页动画进行中窗口还在移动，等停下来再补齐/回收
+            if (this.animations.length > 0 || this.dragState)
+                return this.scheduleFarSync();
+            const far = this.pageRange(this.textureRadius);
+            for (const i of planTextures(this.heldPages(), far, 0).build) {
+                this.composePage(i, true, true);
+            }
+            this.releaseOutsideWindow();
+        }, 80);
+    }
+    /** 重绘已持有纹理的页（换主题、字体加载完成、导入内容），并补齐窗口 */
+    renderAllPageTextures(customOptions) {
+        if (customOptions) {
+            this.renderOptions = { ...this.renderOptions, ...customOptions };
+        }
+        this.heldPages().forEach((i) => this.composePage(i, true));
+        this.syncTextures();
+        this.needsRender = true;
+        if (!this.isEngineReady) {
+            this.isEngineReady = true;
+            this.onReady?.();
+        }
+    }
+    updatePageContent(pageIndex, newContent) {
+        if (pageIndex < 0 || pageIndex >= this.pageContents.length)
+            return;
+        this.pageContents[pageIndex] = newContent;
+        this.composePage(pageIndex, true);
+    }
+    setAllPageContents(newContents) {
+        this.pageContents = [...newContents];
+        this.renderAllPageTextures();
+    }
+    setEditMode(enabled) {
+        this.isEditMode = enabled;
+        if (enabled) {
+            this.cancelAutoFlip();
+            this.dragState = null;
+            this.hoverSheet = -1;
+            if (this.hitArea) {
+                this.hitArea.style.cursor = 'default';
+            }
+        }
+        else {
+            if (this.hitArea) {
+                this.hitArea.style.cursor = 'pointer';
+            }
+        }
+        this.needsRender = true;
+    }
+    /** 阅读层（选区、划线、搜索、书签）直接绘进页面纹理 */
+    setPageReaderOverlay(pageIndex, overlay) {
+        if (pageIndex < 0 || pageIndex >= this.pageContents.length)
+            return;
+        this.pageReaderOverlays[pageIndex] = overlay;
+        this.composePage(pageIndex, false);
+    }
+    /** 阅读器接管指针：返回 true 时引擎不再把这次按下当作翻页 */
+    setPointerInterceptor(fn) {
+        this.pointerInterceptor = fn;
+    }
+    getHitArea() {
+        return this.hitArea;
+    }
+    getContainer() {
+        return this.container;
+    }
+    isEditing() {
+        return this.isEditMode;
+    }
+    getAccentColor() {
+        return this.renderOptions.accentColor ?? '#9B2D26';
+    }
+    clearAllEditStates() {
+        for (const key of Object.keys(this.pageEditStates)) {
+            if (this.pageEditStates[Number(key)])
+                this.updatePageEditState(Number(key), null);
+        }
+        this.pageEditStates = {};
+    }
+    getLeftPageIndex() {
+        if (this.currentSheetIndex === 0)
+            return null;
+        return (this.currentSheetIndex * 2) - 1;
+    }
+    getRightPageIndex() {
+        if (this.currentSheetIndex >= this.totalSheets)
+            return null;
+        if (this.currentSheetIndex === 0)
+            return 0;
+        const rightPage1Based = this.currentSheetIndex * 2 + 1;
+        if (rightPage1Based > this.pageContents.length)
+            return null;
+        return rightPage1Based - 1;
+    }
+    /**
+     * 将浏览器视口鼠标指针客户端坐标 (clientX, clientY)
+     * 经 Three.js 摄像机与 3D 书页表面射线拾取，解算为出版物纹理像素坐标 (canvasX, canvasY)
+     */
+    getCanvasCoordsFromClient(clientX, clientY) {
+        if (this.isFlipping())
+            return null;
+        const rect = this.canvas.getBoundingClientRect();
+        if (clientX < rect.left ||
+            clientX > rect.right ||
+            clientY < rect.top ||
+            clientY > rect.bottom) {
+            return null;
+        }
+        this.mouseVec.set(((clientX - rect.left) / rect.width) * 2 - 1, -(2 * ((clientY - rect.top) / rect.height)) + 1);
+        this.raycaster.setFromCamera(this.mouseVec, this.camera);
+        if (!this.raycaster.ray.intersectPlane(this.groundPlane, this.intersectPoint)) {
+            return null;
+        }
+        const px = this.intersectPoint.x;
+        const py = this.intersectPoint.y;
+        // 书页在 3D 世界半高度
+        const halfH = SHEET_ASPECT / 2;
+        if (py < -halfH || py > halfH) {
+            return null;
+        }
+        const canvasY = ((halfH - py) / SHEET_ASPECT) * CANVAS_HEIGHT;
+        if (px >= 0 && px <= 1.0) {
+            const pageIndex = this.getRightPageIndex();
+            if (pageIndex === null)
+                return null;
+            const canvasX = px * CANVAS_WIDTH;
+            return {
+                pageIndex,
+                side: 'right',
+                canvasX,
+                canvasY,
+            };
+        }
+        else if (px >= -1.0 && px < 0) {
+            const pageIndex = this.getLeftPageIndex();
+            if (pageIndex === null)
+                return null;
+            const canvasX = (1.0 + px) * CANVAS_WIDTH;
+            return {
+                pageIndex,
+                side: 'left',
+                canvasX,
+                canvasY,
+            };
+        }
+        return null;
+    }
+    /**
+     * 原生 3D 编辑态材质热重绘：
+     * 将当前页面的高亮选框、裁切角标、闪烁光标等直接绘制入 2D 纹理 Canvas，
+     * 毫秒级提交至 WebGL 材质，实现 0 重影、0 视差的原生 3D 书页编辑。
+     */
+    updatePageEditState(pageIndex, editState, options = {}) {
+        if (pageIndex < 0 || pageIndex >= this.pageContents.length)
+            return;
+        this.pageEditStates[pageIndex] = editState;
+        // render:false 时只记录状态，由紧随其后的 updatePageContent 一次性绘制
+        if (options.render !== false)
+            this.composePage(pageIndex, false);
+    }
+    /** 画布纹理坐标 → 浏览器视口坐标（用于把 IME 候选窗定位到光标处） */
+    getClientCoordsFromCanvas(pageIndex, canvasX, canvasY) {
+        let px;
+        if (pageIndex === this.getRightPageIndex())
+            px = canvasX / CANVAS_WIDTH;
+        else if (pageIndex === this.getLeftPageIndex())
+            px = canvasX / CANVAS_WIDTH - 1;
+        else
+            return null;
+        const py = SHEET_ASPECT / 2 - (canvasY / CANVAS_HEIGHT) * SHEET_ASPECT;
+        const v = new THREE.Vector3(px, py, 0).project(this.camera);
+        const rect = this.canvas.getBoundingClientRect();
+        return {
+            x: rect.left + ((v.x + 1) / 2) * rect.width,
+            y: rect.top + ((1 - v.y) / 2) * rect.height,
+        };
+    }
+    /** 翻页动画或拖拽进行中，纹理坐标与屏幕不再对应 */
+    isFlipping() {
+        return this.animations.length > 0 || this.dragState !== null;
+    }
+    cornerRollMax(deg) {
+        const rad = (Math.abs(deg) * Math.PI) / 180;
+        const a = 1 - 0.6885 * Math.sin(rad);
+        const n = Math.cos(rad) / a;
+        return this.S.cornerRollMax / (Math.PI * n);
+    }
+    computeTargetCurve(clientX, clientY, sheetIndex) {
+        const sheet = this.sheets[sheetIndex];
+        if (!sheet)
+            return { curlArc: this.S.curlArc, curlAngleDeg: 0 };
+        const wobble = sheet.wobble;
+        const rect = this.canvas.getBoundingClientRect();
+        this.mouseVec.set(((clientX - rect.left) / rect.width) * 2 - 1, -(2 * ((clientY - rect.top) / rect.height)) + 1);
+        this.raycaster.setFromCamera(this.mouseVec, this.camera);
+        let hit = null;
+        if (this.raycaster.ray.intersectPlane(this.groundPlane, this.intersectPoint)) {
+            hit = {
+                angle: Math.atan2(this.intersectPoint.y, this.intersectPoint.x),
+                distanceFromSpine: Math.hypot(this.intersectPoint.x, this.intersectPoint.y),
+            };
+        }
+        const prevActiveTarget = (() => {
+            const prevSheet = this.sheets[this.lastActiveSheet];
+            if (prevSheet && this.lastActiveSheet !== sheetIndex && this.isSheetAnimating(this.lastActiveSheet)) {
+                const cond = prevSheet.direction > 0 ? prevSheet.flipProgress > 0.5 : prevSheet.flipProgress < 0.5;
+                return cond ? undefined : prevSheet.curveTarget;
+            }
+            return undefined;
+        })();
+        let angleDeg = 0;
+        if (hit) {
+            let deg = (180 * hit.angle) / Math.PI;
+            if (deg > 90)
+                deg = 180 - deg;
+            if (deg < -90)
+                deg = -180 - deg;
+            const t = 1 - wobble.angle * this.S.curlAngleJitter;
+            angleDeg = THREE.MathUtils.clamp(-(deg / 90) * this.S.angleMaxDeg * hit.distanceFromSpine * t +
+                wobble.tilt * this.S.curlTiltJitterDeg, -this.S.angleMaxDeg, this.S.angleMaxDeg);
+        }
+        const rollMax = this.cornerRollMax(angleDeg);
+        if (!prevActiveTarget) {
+            const arcScale = 1 - wobble.arc * this.S.curlArcJitter;
+            return {
+                curlArc: Math.min(this.S.curlArc * arcScale, rollMax),
+                curlAngleDeg: angleDeg,
+            };
+        }
+        angleDeg = THREE.MathUtils.clamp(angleDeg, Math.min(0, prevActiveTarget.curlAngleDeg), Math.max(0, prevActiveTarget.curlAngleDeg));
+        const followGain = THREE.MathUtils.lerp(this.FlipSettings.followArcGainMin, this.FlipSettings.followArcGainMax, wobble.arc);
+        return {
+            curlArc: THREE.MathUtils.clamp(prevActiveTarget.curlArc * followGain, prevActiveTarget.curlArc, this.cornerRollMax(angleDeg)),
+            curlAngleDeg: angleDeg,
+        };
+    }
+    getSheetTargetUnderPointer(clientX) {
+        if (this.isEditMode)
+            return null;
+        const rect = this.canvas.getBoundingClientRect();
+        const forward = clientX - rect.left >= rect.width / 2;
+        if (forward ? this.currentSheetIndex >= this.totalSheets : this.currentSheetIndex <= 0) {
+            return null;
+        }
+        return {
+            sheetIndex: forward ? this.currentSheetIndex : this.currentSheetIndex - 1,
+            forward,
+        };
+    }
+    setSheetCurve(sheet, curve, immediate = false) {
+        sheet.curveTarget.curlArc = curve.curlArc;
+        sheet.curveTarget.curlAngleDeg = curve.curlAngleDeg;
+        if (immediate) {
+            sheet.curve.curlArc = curve.curlArc;
+            sheet.curve.curlAngleDeg = curve.curlAngleDeg;
+        }
+    }
+    triggerSheetFlip(sheetIndex, forward, targetProgress, durationSec = this.FlipSettings.flipTime) {
+        this.lastActiveSheet = sheetIndex;
+        const sheet = this.sheets[sheetIndex];
+        sheet.wobble = {
+            arc: Math.random(),
+            angle: Math.random(),
+            tilt: 2 * Math.random() - 1,
+        };
+        this.currentSheetIndex = targetProgress === 1 ? sheetIndex + 1 : sheetIndex;
+        this.syncTextures();
+        this.notifyPageChange();
+        this.needsRender = true;
+        const fromProg = sheet.flipProgress;
+        const durationMs = 1000 * durationSec * Math.max(0.2, Math.abs(targetProgress - fromProg));
+        const existingIdx = this.animations.findIndex((a) => a.sheetIndex === sheetIndex);
+        if (existingIdx !== -1)
+            this.animations.splice(existingIdx, 1);
+        this.animations.push({
+            sheetIndex,
+            fromProgress: fromProg,
+            toProgress: targetProgress,
+            direction: forward ? 1 : -1,
+            startTime: performance.now(),
+            duration: durationMs,
+        });
+    }
+    cancelAutoFlip() {
+        if (this.autoFlipState) {
+            clearTimeout(this.autoFlipState.timer);
+            this.autoFlipState = null;
+        }
+    }
+    performAutoFlipStep() {
+        if (!this.autoFlipState)
+            return;
+        if (!this.autoFlipState.fired) {
+            this.autoFlipState.fired = true;
+            this.dragState = null;
+        }
+        const { forward, count, x, y } = this.autoFlipState;
+        if (forward ? this.currentSheetIndex >= this.totalSheets : this.currentSheetIndex <= 0) {
+            this.cancelAutoFlip();
+            return;
+        }
+        const speedT = Math.min(count / this.AutoFlip.speedUpSheets, 1);
+        const flipTime = this.AutoFlip.firstFlipTime +
+            (this.AutoFlip.fastestFlipTime - this.AutoFlip.firstFlipTime) * speedT;
+        const gapShare = this.AutoFlip.firstGapShare +
+            (this.AutoFlip.fastestGapShare - this.AutoFlip.firstGapShare) * speedT;
+        const targetSheet = forward ? this.currentSheetIndex : this.currentSheetIndex - 1;
+        const sheet = this.sheets[targetSheet];
+        const targetCurve = count === 0 ? sheet.curveTarget : this.computeTargetCurve(x, y, targetSheet);
+        this.setSheetCurve(sheet, targetCurve, true);
+        sheet.direction = forward ? 1 : -1;
+        this.triggerSheetFlip(targetSheet, forward, forward ? 1 : 0, flipTime);
+        this.autoFlipState.count++;
+        this.autoFlipState.timer = setTimeout(this.performAutoFlipStep.bind(this), 1000 * flipTime * gapShare);
+    }
+    handlePointerDown(e) {
+        if (this.isEditMode)
+            return;
+        if (this.pointerInterceptor?.(e))
+            return;
+        if (e.button !== 0)
+            return;
+        const target = this.getSheetTargetUnderPointer(e.clientX);
+        if (!target)
+            return;
+        const sheet = this.sheets[target.sheetIndex];
+        if (!this.isSheetAnimating(target.sheetIndex)) {
+            this.setSheetCurve(sheet, this.computeTargetCurve(e.clientX, e.clientY, target.sheetIndex), true);
+        }
+        const animIdx = this.animations.findIndex((a) => a.sheetIndex === target.sheetIndex);
+        if (animIdx !== -1)
+            this.animations.splice(animIdx, 1);
+        this.pointerDownPos = { x: e.clientX, y: e.clientY };
+        this.dragState = {
+            sheetIndex: target.sheetIndex,
+            forward: target.forward,
+            base: sheet.flipProgress,
+            progress: sheet.flipProgress,
+            rectWidth: this.canvas.getBoundingClientRect().width,
+            targetCurve: { ...sheet.curveTarget },
+            speed: 0,
+        };
+        sheet.direction = target.forward ? 1 : -1;
+        this.cancelAutoFlip();
+        this.autoFlipState = {
+            forward: target.forward,
+            x: e.clientX,
+            y: e.clientY,
+            count: 0,
+            fired: false,
+            timer: setTimeout(this.performAutoFlipStep.bind(this), 1000 * this.AutoFlip.startTime),
+        };
+        try {
+            this.hitArea.setPointerCapture(e.pointerId);
+        }
+        catch { }
+        this.needsRender = true;
+    }
+    handlePointerMove(e) {
+        if (this.isEditMode) {
+            this.pointerX = e.clientX;
+            this.pointerY = e.clientY;
+            return;
+        }
+        if (this.autoFlipState) {
+            if (this.pointerDownPos) {
+                const distSq = (e.clientX - this.pointerDownPos.x) ** 2 + (e.clientY - this.pointerDownPos.y) ** 2;
+                const slop = this.autoFlipState.fired ? this.AutoFlip.moveSlopPx : this.DragPhysics.clickSlopPx;
+                if (distSq > slop * slop) {
+                    this.cancelAutoFlip();
+                }
+            }
+        }
+        if (this.dragState) {
+            const deltaX = e.clientX - (this.pointerDownPos ? this.pointerDownPos.x : e.clientX);
+            this.dragState.progress = THREE.MathUtils.clamp(this.dragState.base - deltaX / this.dragState.rectWidth / this.DragPhysics.turnFraction, 0, 1);
+            this.dragState.targetCurve = this.computeTargetCurve(e.clientX, e.clientY, this.dragState.sheetIndex);
+            this.needsRender = true;
+            return;
+        }
+        this.pointerX = e.clientX;
+        this.pointerY = e.clientY;
+        this.isPointerInside = true;
+        this.needsRender = true;
+    }
+    handlePointerUp(e) {
+        if (this.isEditMode)
+            return;
+        this.cancelAutoFlip();
+        if (!this.dragState) {
+            this.pointerDownPos = null;
+            return;
+        }
+        const drag = this.dragState;
+        const isDragMoved = this.pointerDownPos
+            ? (e.clientX - this.pointerDownPos.x) ** 2 + (e.clientY - this.pointerDownPos.y) ** 2 >
+                this.DragPhysics.clickSlopPx ** 2
+            : false;
+        this.dragState = null;
+        this.pointerDownPos = null;
+        try {
+            this.hitArea.releasePointerCapture(e.pointerId);
+        }
+        catch { }
+        if (!isDragMoved) {
+            this.triggerSheetFlip(drag.sheetIndex, drag.forward, drag.forward ? 1 : 0);
+            return;
+        }
+        const commit = (drag.forward ? drag.progress - drag.base : drag.base - drag.progress) >=
+            this.DragPhysics.commitProgress;
+        const targetProgress = drag.forward === commit ? 1 : 0;
+        this.lastActiveSheet = drag.sheetIndex;
+        const sheet = this.sheets[drag.sheetIndex];
+        sheet.wobble = {
+            arc: Math.random(),
+            angle: Math.random(),
+            tilt: 2 * Math.random() - 1,
+        };
+        this.currentSheetIndex = targetProgress === 1 ? drag.sheetIndex + 1 : drag.sheetIndex;
+        this.syncTextures();
+        this.notifyPageChange();
+        const fromProg = sheet.flipProgress;
+        const speed = targetProgress === 1 ? drag.speed : -drag.speed;
+        const delta = Math.max(Math.abs(targetProgress - fromProg), 0.001);
+        const fallDuration = this.DragPhysics.fallTime * Math.pow(delta, this.DragPhysics.fallTimeExponent);
+        const existingIdx = this.animations.findIndex((a) => a.sheetIndex === drag.sheetIndex);
+        if (existingIdx !== -1)
+            this.animations.splice(existingIdx, 1);
+        this.animations.push({
+            sheetIndex: drag.sheetIndex,
+            fromProgress: fromProg,
+            toProgress: targetProgress,
+            direction: drag.forward ? 1 : -1,
+            startTime: performance.now(),
+            duration: 1000 * fallDuration,
+            launch: THREE.MathUtils.clamp((speed * fallDuration) / delta, 0, 2),
+        });
+        this.needsRender = true;
+    }
+    bindEvents() {
+        const signal = this.abortController.signal;
+        this.hitArea.addEventListener('pointerdown', (e) => this.handlePointerDown(e), { signal });
+        this.hitArea.addEventListener('pointermove', (e) => this.handlePointerMove(e), { signal });
+        this.hitArea.addEventListener('pointerup', (e) => this.handlePointerUp(e), { signal });
+        this.hitArea.addEventListener('pointercancel', (e) => this.handlePointerUp(e), { signal });
+        this.hitArea.addEventListener('pointerleave', () => {
+            this.isPointerInside = false;
+            this.needsRender = true;
+        }, { signal });
+    }
+    handleResize() {
+        const width = this.canvas.clientWidth;
+        const height = this.canvas.clientHeight;
+        if (!width || !height)
+            return;
+        this.camera.aspect = width / height;
+        this.camera.updateProjectionMatrix();
+        const maxPixels = 15e6;
+        const scaleFactor = Math.sqrt(maxPixels / (width * height));
+        const pr = Math.min(window.devicePixelRatio || 1, 4, scaleFactor);
+        this.renderer.setPixelRatio(pr);
+        this.renderer.setSize(width, height, false);
+        this.needsRender = true;
+    }
+    notifyPageChange(instant = false) {
+        let left = null;
+        let right = null;
+        if (this.currentSheetIndex === 0) {
+            left = null;
+            right = 1;
+        }
+        else if (this.currentSheetIndex === this.totalSheets) {
+            left = this.totalSheets * 2;
+            right = null;
+        }
+        else {
+            left = this.currentSheetIndex * 2;
+            right = this.currentSheetIndex * 2 + 1;
+        }
+        this.onPageChange?.(this.currentSheetIndex, left, right, instant);
+    }
+    animate(currentTime) {
+        if (this.isDisposed)
+            return;
+        const now = performance.now();
+        // 1. Process active flip animations
+        for (let i = this.animations.length - 1; i >= 0; i--) {
+            const anim = this.animations[i];
+            const sheet = this.sheets[anim.sheetIndex];
+            const p = Math.min(Math.max((now - anim.startTime) / anim.duration, 0), 1);
+            let ease;
+            if (anim.launch === undefined) {
+                ease = 0.5 * (1 - Math.cos(p * Math.PI));
+            }
+            else {
+                const a = anim.launch;
+                const n = this.DragPhysics.landingSpeed;
+                const o = p * p;
+                const r = o * p;
+                ease = (r - 2 * o + p) * a + (3 * o - 2 * r) + (r - o) * n;
+            }
+            sheet.flipProgress = anim.fromProgress + (anim.toProgress - anim.fromProgress) * ease;
+            sheet.direction = anim.direction;
+            if (now >= anim.startTime + anim.duration) {
+                this.animations.splice(i, 1);
+                this.needsRender = true;
+            }
+        }
+        // Delta time
+        const dt = this.lastFrameTime ? Math.min((currentTime - this.lastFrameTime) / 1000, 0.1) : 1 / 60;
+        this.lastFrameTime = currentTime;
+        // 2. Drag physics update
+        if (this.dragState) {
+            const sheet = this.sheets[this.dragState.sheetIndex];
+            const smoothAlpha = 1 - Math.pow(0.01, dt / this.DragPhysics.progressSmoothTime);
+            const delta = (this.dragState.progress - sheet.flipProgress) * smoothAlpha;
+            sheet.flipProgress += delta;
+            this.dragState.speed = dt > 0 ? delta / dt : 0;
+            this.setSheetCurve(sheet, this.dragState.targetCurve, false);
+        }
+        let isBusy = this.animations.length > 0 || this.dragState !== null;
+        const smoothProgress = 1 - Math.pow(0.001, dt / this.Hover.smoothTime);
+        const smoothCurve = 1 - Math.pow(0.001, dt / this.S.curveSmoothTime);
+        const smoothDir = 1 - Math.pow(0.001, dt / this.S.directionSmoothTime);
+        // Hover peek target
+        const hoverTarget = this.isEditMode || !this.isPointerInside || this.dragState || this.autoFlipState
+            ? null
+            : this.getSheetTargetUnderPointer(this.pointerX);
+        const prevHover = this.hoverSheet;
+        this.hoverSheet = hoverTarget && !this.isSheetAnimating(hoverTarget.sheetIndex) ? hoverTarget.sheetIndex : -1;
+        if (this.hoverSheet !== -1) {
+            this.setSheetCurve(this.sheets[this.hoverSheet], this.computeTargetCurve(this.pointerX, this.pointerY, this.hoverSheet), this.hoverSheet !== prevHover);
+        }
+        // 3. Update each sheet physics and uniforms
+        for (let i = 0; i < this.sheets.length; i++) {
+            const sheet = this.sheets[i];
+            if (!this.isSheetAnimating(i) && !(this.dragState && this.dragState.sheetIndex === i)) {
+                const isHovered = i === this.hoverSheet;
+                const targetRest = i >= this.currentSheetIndex ? 0 : 1;
+                const dest = isHovered
+                    ? targetRest === 0
+                        ? this.Hover.progress
+                        : 1 - this.Hover.progress
+                    : targetRest;
+                const diff = dest - sheet.flipProgress;
+                if (Math.abs(diff) < this.S.settleEpsilon) {
+                    if (sheet.flipProgress !== dest) {
+                        sheet.flipProgress = dest;
+                        this.needsRender = true;
+                    }
+                }
+                else {
+                    sheet.flipProgress += diff * smoothProgress;
+                    isBusy = true;
+                }
+                const neighbor = this.sheets[targetRest === 0 ? i - 1 : i + 1];
+                if (neighbor) {
+                    const clamped = targetRest === 0
+                        ? Math.min(sheet.flipProgress, Math.max(0, neighbor.flipProgress - this.Hover.gapToSheetAbove))
+                        : Math.max(sheet.flipProgress, Math.min(1, neighbor.flipProgress + this.Hover.gapToSheetAbove));
+                    if (clamped !== sheet.flipProgress) {
+                        sheet.flipProgress = clamped;
+                        isBusy = true;
+                    }
+                }
+                sheet.direction = targetRest === 1 && sheet.flipProgress !== targetRest ? -1 : 1;
+                sheet.directionSmooth = sheet.direction;
+            }
+            const dirDiff = sheet.direction - sheet.directionSmooth;
+            if (Math.abs(dirDiff) < this.S.settleEpsilon) {
+                if (sheet.directionSmooth !== sheet.direction) {
+                    sheet.directionSmooth = sheet.direction;
+                    this.needsRender = true;
+                }
+            }
+            else {
+                sheet.directionSmooth += dirDiff * smoothDir;
+                isBusy = true;
+            }
+            for (const key of ['curlArc', 'curlAngleDeg']) {
+                const cDiff = sheet.curveTarget[key] - sheet.curve[key];
+                if (Math.abs(cDiff) < this.S.settleEpsilon) {
+                    sheet.curve[key] = sheet.curveTarget[key];
+                }
+                else {
+                    sheet.curve[key] += cDiff * smoothCurve;
+                    isBusy = true;
+                }
+            }
+            const lift = sheet.stackLiftBase + sheet.stackLiftSpan * sheet.flipProgress;
+            const uniforms = sheet.sheetUniforms;
+            const curve = sheet.curve;
+            const dirSmooth = sheet.directionSmooth;
+            const progressPI = sheet.flipProgress * Math.PI;
+            const bend = Math.sin(progressPI) * Math.PI * curve.curlArc;
+            const rad = (curve.curlAngleDeg * Math.PI) / 180;
+            const cosRad = Math.cos(rad);
+            const sinRad = Math.sin(rad);
+            const u = 1 - 0.6885 * Math.sin(Math.abs(rad));
+            const d = 1 - u;
+            const f = 0.6885 * Math.sign(sinRad);
+            const m = Math.max(0, cosRad + sinRad * f - d);
+            const p = (m / u) * bend;
+            const g = progressPI +
+                0.5 *
+                    dirSmooth *
+                    (m * (Math.abs(p) < 1e-4 ? 0 : (1 - Math.cos(p)) / p));
+            uniforms.uFlipProgress.value = sheet.flipProgress;
+            uniforms.uWrinkleSide.value = -Math.cos(progressPI);
+            uniforms.uDirection.value = dirSmooth;
+            uniforms.uStackLift.value = lift;
+            uniforms.uBendAngle.value = bend;
+            uniforms.uFold.value.set(cosRad, sinRad);
+            uniforms.uCurl.value.set(d, u);
+            uniforms.uFlipRotation.value.set(Math.cos(g), Math.sin(g));
+        }
+        // 4. Update hit area inset
+        const isInteracting = this.animations.length > 0 || this.dragState !== null || this.autoFlipState !== null;
+        const isAtStart = this.currentSheetIndex === 0 && !isInteracting;
+        const isAtEnd = this.currentSheetIndex === this.totalSheets && !isInteracting;
+        const targetInset = isAtStart ? '0 0 0 50%' : isAtEnd ? '0 50% 0 0' : '0';
+        if (targetInset !== this.lastHitAreaInset) {
+            this.lastHitAreaInset = targetInset;
+            this.hitArea.style.inset = targetInset;
+        }
+        // 5. Render if busy or needsRender
+        if (isBusy || this.needsRender) {
+            for (let i = 0; i < this.sheets.length; i++) {
+                const sheet = this.sheets[i];
+                const distFromCurrent = i >= this.currentSheetIndex ? i - this.currentSheetIndex : this.currentSheetIndex - 1 - i;
+                const shouldShadow = distFromCurrent < 3 || this.isSheetAnimating(i) || (this.dragState !== null && this.dragState.sheetIndex === i);
+                if (sheet.mesh.castShadow !== shouldShadow) {
+                    sheet.mesh.castShadow = shouldShadow;
+                }
+                sheet.mesh.renderOrder = distFromCurrent;
+            }
+            this.renderer.shadowMap.needsUpdate = true;
+            this.renderer.render(this.scene, this.camera);
+            this.needsRender = false;
+        }
+    }
+    flipNext() {
+        if (this.currentSheetIndex < this.totalSheets) {
+            this.triggerSheetFlip(this.currentSheetIndex, true, 1);
+        }
+    }
+    flipPrev() {
+        if (this.currentSheetIndex > 0) {
+            this.triggerSheetFlip(this.currentSheetIndex - 1, false, 0);
+        }
+    }
+    goToPage(pageIndex) {
+        this.goToSheet(pageToSheet(pageIndex));
+    }
+    /**
+     * 翻过去（带翻页动画与音效）：近处逐张翻，距离超过 MAX_FLIP_CHAIN 张时先静默落到目标前几张，
+     * 只翻最后几张。需要完全没有动画的瞬间跳转请用 jumpToSheet / jumpToPage。
+     */
+    goToSheet(targetIndex) {
+        const clamped = THREE.MathUtils.clamp(Math.trunc(targetIndex), 0, this.totalSheets);
+        this.cancelFlipChain();
+        if (clamped === this.currentSheetIndex)
+            return;
+        const { jumpTo } = planFlipChain(this.currentSheetIndex, clamped);
+        if (jumpTo !== null)
+            this.jumpToSheet(jumpTo);
+        const forward = clamped > this.currentSheetIndex;
+        const from = forward ? this.currentSheetIndex : this.currentSheetIndex - 1;
+        const step = forward ? 1 : -1;
+        let delay = 0;
+        for (let i = from; forward ? i < clamped : i >= clamped; i += step) {
+            this.flipTimers.push(setTimeout(() => {
+                if (!this.isDisposed)
+                    this.triggerSheetFlip(i, forward, forward ? 1 : 0, 0.6);
+            }, delay));
+            delay += 90;
+        }
+    }
+    cancelFlipChain() {
+        for (const t of this.flipTimers)
+            clearTimeout(t);
+        this.flipTimers = [];
+    }
+    /** 瞬间跳到第 n 张对开页（0 = 封面）：没有翻页动画、不触发翻页音，只绘制目标附近的页 */
+    jumpToSheet(targetIndex) {
+        const clamped = THREE.MathUtils.clamp(Math.trunc(targetIndex), 0, this.totalSheets);
+        this.cancelFlipChain();
+        this.cancelAutoFlip();
+        this.animations = [];
+        this.dragState = null;
+        const changed = clamped !== this.currentSheetIndex;
+        this.currentSheetIndex = clamped;
+        this.sheets.forEach((sheet, i) => {
+            sheet.flipProgress = i < clamped ? 1 : 0;
+            sheet.direction = 1;
+            sheet.directionSmooth = 1;
+        });
+        // 跳转时只同步绘制可见的那一对，邻近页随后在空闲时补齐
+        this.syncTextures(0);
+        this.needsRender = true;
+        if (changed)
+            this.notifyPageChange(true);
+    }
+    /** 瞬间跳到包含第 n 页（从 0 起）的对开页 */
+    jumpToPage(pageIndex) {
+        this.jumpToSheet(pageToSheet(Math.trunc(pageIndex)));
+    }
+    getCurrentSheet() {
+        return this.currentSheetIndex;
+    }
+    getTotalSheets() {
+        return this.totalSheets;
+    }
+    dispose() {
+        this.isDisposed = true;
+        this.cancelAutoFlip();
+        this.cancelFlipChain();
+        if (this.farSyncTimer !== null)
+            clearTimeout(this.farSyncTimer);
+        this.abortController.abort();
+        this.resizeObserver.disconnect();
+        this.renderer.setAnimationLoop(null);
+        for (const sheet of this.sheets) {
+            sheet.mesh.geometry.dispose();
+            sheet.mesh.material.dispose();
+            sheet.mesh.customDepthMaterial?.dispose();
+        }
+        for (const tex of this.pageTextures) {
+            tex?.dispose();
+        }
+        this.patternTexture?.dispose();
+        this.placeholderTex.dispose();
+        this.renderer.dispose();
+        this.hitArea.remove();
+        this.canvas.remove();
+    }
+}
