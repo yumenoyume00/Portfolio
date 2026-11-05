@@ -77,7 +77,7 @@ export class MobileMagazineEngine {
         this.camera = new THREE.PerspectiveCamera(mobileFov(), 2, 1.5, 4.5);
         this.camera.position.set(c.x, c.y, MOBILE_CAMERA_Z);
         this.camera.lookAt(c.x, c.y, 0);
-        this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: !!this.renderOptions.preserveDrawingBuffer });
         this.renderer.shadowMap.enabled = true;
         this.renderer.shadowMap.type = THREE.PCFShadowMap;
         this.renderer.shadowMap.autoUpdate = false;

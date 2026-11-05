@@ -120,7 +120,7 @@ export class MagazineEngine {
         this.camera = new THREE.PerspectiveCamera(40, 1.44753, 1.5, 4.5);
         this.camera.position.set(0, 0, 3.8617);
         this.camera.lookAt(0, 0, 0);
-        this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        this.renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true, preserveDrawingBuffer: !!this.renderOptions.preserveDrawingBuffer });
         this.renderer.shadowMap.enabled = true;
         this.renderer.shadowMap.type = THREE.PCFShadowMap;
         this.renderer.shadowMap.autoUpdate = false;

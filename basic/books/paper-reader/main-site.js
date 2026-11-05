@@ -60,7 +60,7 @@ if(bookId === 'aota') {
  const imageVersion=bookId==='landscape'?'19-instant1':['hozzz','life-supplement'].includes(bookId)?'18':book.base==='vendor'?'15-instant1':'15';
  const images=await import(`./${book.base}/pageImages.js?v=${imageVersion}`);
  const {installPageReadiness}=await import('./page-readiness.js?v=instant-current-1');
- const version=deskEdition?'instant-current-1':bookId==='landscape'?'19':['hozzz','life-supplement'].includes(bookId)?'18':'15';
+ const version=deskEdition?'safari-frame-1':bookId==='landscape'?'19':['hozzz','life-supplement'].includes(bookId)?'18':'15';
  const narrow=matchMedia('(max-width:650px)');
  const loadEngine=async single=>single?(await import(`./${book.base}/mobile/MobileMagazineEngine.js?v=${version}`)).MobileMagazineEngine:(await import(`./${book.base}/MagazineEngine.js?v=${version}`)).MagazineEngine;
  const firstEngine=loadEngine(book.single||narrow.matches);
@@ -121,7 +121,7 @@ if(bookId === 'aota') {
   $('book').style.aspectRatio=String(ratio);
   $('book').style.width=`min(88vw,calc((100dvh - ${mode==='standalone'?185:92}px)*${ratio}))`;
   try {
-   engine=new Engine({container:$('book'),pageContents:pages,patternUrl:`./${book.base}/texture.webp`,renderOptions:{paperColor:'#ffffff',...(deskEdition?{textureAhead:2}:{}),minimumPixelRatio:adaptiveMobile?1.5:params.get('quality')==='retina'?(book.single?2.75:2.25):1,sourceImageResolution:params.get('quality')==='retina'},initialIndex:page,initialSheet:page===0?0:Math.floor((page+1)/2),textureRadius:1,onPageChange:update,onReady:()=>{document.body.dataset.ready='true';$('status').style.display='none';report('ready');}});
+   engine=new Engine({container:$('book'),pageContents:pages,patternUrl:`./${book.base}/texture.webp`,renderOptions:{paperColor:'#ffffff',...(deskEdition?{textureAhead:2,preserveDrawingBuffer:true}:{}),minimumPixelRatio:adaptiveMobile?1.5:params.get('quality')==='retina'?(book.single?2.75:2.25):1,sourceImageResolution:params.get('quality')==='retina'},initialIndex:page,initialSheet:page===0?0:Math.floor((page+1)/2),textureRadius:1,onPageChange:update,onReady:()=>{document.body.dataset.ready='true';$('status').style.display='none';report('ready');}});
    if(deskEdition)installPageReadiness(engine,pages,{single,images,onLoading:(loading,error)=>{
     document.body.dataset.pageLoading=String(loading);
     const status=$('status');status.textContent=error?'ページを読み込めませんでした。もう一度お試しください。':'ページを読み込み中…';
