@@ -138,7 +138,12 @@ const portfolioWebAssets={"assets/images/image-0113.png":"assets/web/assets/imag
   [['width',rightW],['height',finalH],['left',origin+leftW+gap],['top',(h-finalH)/2]].forEach(([key,v])=>b.style.setProperty(key,v+'px','important'));
   b.style.opacity=String(ease((t-.2)/.8));b.style.transform=`scale(${.94+.06*t})`;b.style.visibility=t>.2?'visible':'hidden';b.style.pointerEvents=t>.98?'auto':'none';
  }
- function readerReady(f){try{const d=f.contentDocument;return !!d&&!!d.querySelector('#coverPage canvas,#book .page canvas,.page img,.page canvas,#book .leaf canvas')&&!d.querySelector('.loading:not(.done):not(.hidden),#loading:not(.done):not(.hidden)');}catch(_){return false;}}
+ function readerReady(f){try{
+  const d=f.contentDocument;if(!d)return false;
+  // Current Paper readers render one WebGL canvas, not the legacy .page leaves.
+  if(d.body?.dataset.ready==='true'&&d.querySelector('#book canvas,#fallback:not([hidden]) img'))return true;
+  return !!d.querySelector('#coverPage canvas,#book .page canvas,.page img,.page canvas,#book .leaf canvas')&&!d.querySelector('.loading:not(.done):not(.hidden),#loading:not(.done):not(.hidden)');
+ }catch(_){return false;}}
  function paintReader(st,p,u,textExit,visible){
   p.el.style.setProperty('--reader-space',`${20+(st.head.offsetHeight+26)*(1-textExit)}px`);
   const growth=ease((u-.12)/.58);p.el.style.setProperty('--book-growth',growth);p.el.style.setProperty('--book-lift','0px');
