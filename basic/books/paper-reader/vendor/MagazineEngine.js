@@ -1,6 +1,6 @@
 import * as THREE from 'three';
 import { createBakedSheetGeometry, SHEET_ASPECT } from './noiseBaker.js?v=15';
-import { VERTEX_DECLARATIONS, NORMAL_RECOMPUTE, DEPTH_VERTEX_POSITION, FRAGMENT_HEADER, MAP_FRAGMENT, ROUGHNESS_FRAGMENT, OPAQUE_FRAGMENT, NORMAL_FRAGMENT, } from './shaders.js?v=15';
+import { VERTEX_DECLARATIONS, NORMAL_RECOMPUTE, DEPTH_VERTEX_POSITION, FRAGMENT_HEADER, MAP_FRAGMENT, ROUGHNESS_FRAGMENT, OPAQUE_FRAGMENT, STABLE_PAPER_OPAQUE_FRAGMENT, NORMAL_FRAGMENT, } from './shaders.js?v=paper-ink-1114';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from './pageLayout.js?v=15';
 import { getCachedPageImage, loadPageImage } from './pageImages.js?v=15-instant1';
 import { pageImageUrls } from './figureFlow.js?v=15';
@@ -242,7 +242,7 @@ export class MagazineEngine {
                 shader.fragmentShader = shader.fragmentShader.replace('#include <normal_fragment_begin>', NORMAL_FRAGMENT);
                 shader.fragmentShader = shader.fragmentShader.replace('#include <map_fragment>', MAP_FRAGMENT);
                 shader.fragmentShader = shader.fragmentShader.replace('#include <roughnessmap_fragment>', ROUGHNESS_FRAGMENT);
-                shader.fragmentShader = shader.fragmentShader.replace('#include <opaque_fragment>', OPAQUE_FRAGMENT);
+                shader.fragmentShader = shader.fragmentShader.replace('#include <opaque_fragment>', this.renderOptions.stablePaperShading ? STABLE_PAPER_OPAQUE_FRAGMENT : OPAQUE_FRAGMENT);
             };
             const depthMaterial = new THREE.MeshDepthMaterial({
                 depthPacking: THREE.RGBADepthPacking,

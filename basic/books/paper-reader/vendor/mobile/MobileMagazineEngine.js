@@ -4,7 +4,7 @@ import { getCachedPageImage, loadPageImage } from '../pageImages.js?v=15-instant
 import { pageImageUrls } from '../figureFlow.js?v=15';
 import { CANVAS_WIDTH, CANVAS_HEIGHT } from '../pageLayout.js?v=15';
 import { paintReaderOverlay } from '../reader/overlayPainter.js?v=15';
-import { MAP_FRAGMENT, ROUGHNESS_FRAGMENT, OPAQUE_FRAGMENT, NORMAL_FRAGMENT, } from '../shaders.js?v=15';
+import { MAP_FRAGMENT, ROUGHNESS_FRAGMENT, OPAQUE_FRAGMENT, STABLE_PAPER_OPAQUE_FRAGMENT, NORMAL_FRAGMENT, } from '../shaders.js?v=paper-ink-1114';
 import { MOBILE_VERTEX_DECLARATIONS, MOBILE_NORMAL_RECOMPUTE, MOBILE_DEPTH_VERTEX_POSITION, MOBILE_FRAGMENT_HEADER, MOBILE_SHADOW_INTENSITY, } from './mobileShader.js?v=15';
 import { MOBILE_CAMERA_Z, MOBILE_LAYER_SCALE, MOBILE_SHEET_ASPECT, MOBILE_TUNING, bookOffset, buildCatchUp, buildRadiusSpacing, claimsHorizontalSwipe, commitTarget, computeSheetShape, dragProgress, flipEase, holdTiming, mobileFov, mobileFrameCenter, sheetRenderOrder, sheetVisible, } from './mobileModel.js?v=15';
 const HALF_H = MOBILE_SHEET_ASPECT / 2;
@@ -174,7 +174,7 @@ export class MobileMagazineEngine {
                 shader.fragmentShader = shader.fragmentShader.replace('#include <normal_fragment_begin>', NORMAL_FRAGMENT);
                 shader.fragmentShader = shader.fragmentShader.replace('#include <map_fragment>', MAP_FRAGMENT);
                 shader.fragmentShader = shader.fragmentShader.replace('#include <roughnessmap_fragment>', ROUGHNESS_FRAGMENT);
-                shader.fragmentShader = shader.fragmentShader.replace('#include <opaque_fragment>', OPAQUE_FRAGMENT);
+                shader.fragmentShader = shader.fragmentShader.replace('#include <opaque_fragment>', this.renderOptions.stablePaperShading ? STABLE_PAPER_OPAQUE_FRAGMENT : OPAQUE_FRAGMENT);
             };
             const depthMaterial = new THREE.MeshDepthMaterial({
                 depthPacking: THREE.RGBADepthPacking,

@@ -163,3 +163,15 @@ export const NORMAL_FRAGMENT = /* glsl */ `
     normal *= faceDirection;
     vec3 nonPerturbedNormal = normal;
 `;
+
+// Saturated inks can have zero-valued channels. Derive neutral paper lighting
+// from luminance instead of dividing each color channel independently.
+export const STABLE_PAPER_OPAQUE_FRAGMENT = /* glsl */ `
+    const vec3 paperLuma = vec3(0.2126, 0.7152, 0.0722);
+    float paperPigment = dot(diffuseColor.rgb, paperLuma);
+    float paperIllumination = dot(totalDiffuse, paperLuma) / max(paperPigment, 0.0001);
+    float paperShade = clamp(paperIllumination * 1.35, 0.0, 1.0);
+    outgoingLight = diffuseColor.rgb * paperShade * 0.965 + totalSpecular * 0.35;
+    #include <opaque_fragment>
+    gl_FragColor.rgb = mix(gl_FragColor.rgb, vec3(0.), pattern * TEXTURE_COLOR);
+`;
