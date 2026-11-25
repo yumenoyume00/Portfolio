@@ -7,9 +7,15 @@ addEventListener('unhandledrejection', () => report('error'));
 const deskEdition=params.get('edition')==='desk-1104';
 const contentQuery=deskEdition?'?content='+encodeURIComponent(params.get('content')||'current'):'';
 const adaptiveMobile=deskEdition&&params.get('delivery')==='adaptive'&&matchMedia('(max-width:650px)').matches;
-const portfolioInfo = await fetch(deskEdition?'./book-info-desk-current.json'+contentQuery:'./book-info.json?v=1103').then(r => r.json());
+const expectedSource = (params.get('content')||'').match(/^([a-f0-9]{8,64})(?:-.*)?$/)?.[1];
+const sourceFolder=deskEdition&&expectedSource?'./versions/'+expectedSource.slice(0,8):null;
+let sourceIsPinned=false;
+const portfolioInfo = await (async()=>{
+ if(sourceFolder){const response=await fetch(sourceFolder+'/book-info.json');if(response.ok){sourceIsPinned=true;return response.json();}}
+ return fetch(deskEdition?'./book-info-desk-current.json'+contentQuery:'./book-info.json?v=1103').then(r=>r.json());
+})();
 const books = {
- portfolio:{title:'作品集 · 新版',aspect:portfolioInfo.aspect,base:'vendor',pages:deskEdition?'./pages-desk-current.json'+contentQuery:params.get('quality')==='retina'?'./pages-hq.json?v=1':'./pages.json?v=1103'},
+ portfolio:{title:'作品集 · 新版',aspect:portfolioInfo.aspect,base:'vendor',pages:deskEdition?(sourceIsPinned?sourceFolder+'/pages.json':'./pages-desk-current.json'+contentQuery):params.get('quality')==='retina'?'./pages-hq.json?v=1':'./pages.json?v=1103'},
  landscape:{title:'ポートフォリオ・横',aspect:.5625,base:'vendor-landscape',pages:adaptiveMobile?'./pages-landscape-mobile.json':params.get('quality')==='retina'?'./books/landscape/apps-only-hq.json?v=1':'./books/landscape/apps-only.json?v=20',single:true},
  life:{title:'Life',aspect:765.35/595.28,base:'vendor-life',pages:'./books/life/pages.json'},
  'life-supplement':{title:'Life · 付録',aspect:1.414,base:'vendor-life-supplement',pages:'./books/life-supplement/pages.json'},
@@ -20,7 +26,6 @@ const books = {
 const requested = params.get('book');
 const bookId = Object.hasOwn(books, requested) ? requested : 'portfolio';
 const book = books[bookId];
-const expectedSource = (params.get('content')||'').match(/^([a-f0-9]{8,64})(?:-.*)?$/)?.[1];
 const staleSource = deskEdition&&bookId==='portfolio'&&expectedSource&&!portfolioInfo.sourceSha256?.startsWith(expectedSource);
 if(bookId==='portfolio')document.body.dataset.sourceSha256=portfolioInfo.sourceSha256||'';
 document.title = `ZOU MENG — ${book.title}`;
